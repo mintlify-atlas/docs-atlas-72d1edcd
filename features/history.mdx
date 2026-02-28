@@ -1,0 +1,321 @@
+---
+title: "History Tracking"
+description: "Review past workouts, track your progress, and analyze your training over time"
+---
+
+## Overview
+
+The History feature provides a complete timeline of all your logged workouts. Review past sessions, track completion rates, and see your training consistency at a glance.
+
+<Info>
+Every workout you log is automatically saved to your history with complete details about exercises, sets, reps, and weights used.
+</Info>
+
+## Accessing Your History
+
+Navigate to the **History** tab from the bottom navigation to view your complete workout timeline.
+
+## History Overview
+
+### Summary Statistics
+
+At the top of your history, you'll see:
+
+<CardGroup cols={2}>
+  <Card title="Completed Workouts" icon="circle-check">
+    Green-highlighted count of fully completed training sessions
+  </Card>
+  <Card title="Total Logged" icon="dumbbell">
+    Total number of workouts in your history (including partial sessions)
+  </Card>
+</CardGroup>
+
+### Empty State
+
+If you haven't logged any workouts yet:
+- A helpful empty state appears with an illustration
+- Message: "Start tracking your workouts in the Program tab"
+- Encourages you to begin logging to build your history
+
+## Workout Cards
+
+### Card Information
+
+Each history entry displays:
+
+<Tabs>
+  <Tab title="Header Info">
+    - **Workout identifier**: "Week X - Day Y"
+    - **Date logged**: Formatted date (e.g., "Jan 15")
+    - **Completion badge**: Green checkmark for completed workouts
+  </Tab>
+  
+  <Tab title="Statistics">
+    - **Sets completed**: Ratio of completed sets to total sets (e.g., "12/15")
+    - **Exercise count**: Number of exercises in the workout
+    - Both stats highlighted in your theme's primary color
+  </Tab>
+  
+  <Tab title="Exercise Preview">
+    - First two exercises from the workout
+    - Shows tier and exercise name (e.g., "T1: Squat")
+    - Gives quick context about the workout content
+  </Tab>
+</Tabs>
+
+### Visual Indicators
+
+<AccordionGroup>
+  <Accordion title="Completed workouts">
+    - **Green left border**: Full-width colored accent
+    - **Check badge**: Green circle with white checkmark icon
+    - **100% sets**: All sets marked as complete
+  </Accordion>
+  
+  <Accordion title="Partial workouts">
+    - **Primary color border**: Blue or theme accent
+    - **No completion badge**: Just the set ratio
+    - **Mixed progress**: Some sets complete, others not
+  </Accordion>
+</AccordionGroup>
+
+## Interacting with History
+
+### Viewing a Past Workout
+
+<Steps>
+  <Step title="Tap any history card">
+    Select the workout you want to review in detail.
+  </Step>
+  
+  <Step title="Workout screen opens">
+    The full workout tracking screen appears with all your logged data.
+  </Step>
+  
+  <Step title="Review or modify">
+    View what you lifted, or make corrections if needed. Changes save automatically.
+  </Step>
+</Steps>
+
+<Warning>
+Opening a past workout lets you edit the data. Be careful not to accidentally change historical records.
+</Warning>
+
+### Deleting a Workout
+
+<Steps>
+  <Step title="Tap the delete icon">
+    Each card has a trash icon in the top-right corner.
+  </Step>
+  
+  <Step title="Immediate deletion">
+    The workout is removed instantly with haptic feedback.
+  </Step>
+  
+  <Step title="No confirmation">
+    Deletion is immediate and permanent. There's no undo option.
+  </Step>
+</Steps>
+
+<Warning>
+Deleting a workout permanently removes it from your history. This action cannot be undone.
+</Warning>
+
+## Organizing Your History
+
+### Chronological Order
+
+Workouts are sorted by date:
+- **Most recent first**: Newest sessions at the top
+- **Scrollable timeline**: Infinite scroll through your entire history
+- **Date stamps**: Each entry shows when it was logged
+
+### Pull to Refresh
+
+Keep your history current:
+
+1. Pull down from the top of the list
+2. History refreshes and re-sorts
+3. New workouts appear if logged elsewhere
+
+<Info>
+History auto-refreshes when you navigate to the History tab, ensuring you always see the latest workouts.
+</Info>
+
+## Tracking Progress
+
+### Completion Trends
+
+Use your history to identify:
+
+<CardGroup cols={2}>
+  <Card title="Consistency" icon="calendar-check">
+    How regularly you're training by viewing date gaps between workouts
+  </Card>
+  <Card title="Completion Rate" icon="percent">
+    Ratio of completed vs. partial workouts to gauge adherence
+  </Card>
+  <Card title="Volume Trends" icon="chart-line">
+    Changes in total sets completed over time
+  </Card>
+  <Card title="Exercise Frequency" icon="repeat">
+    How often specific movements appear in your training
+  </Card>
+</CardGroup>
+
+### Week-by-Week Analysis
+
+Review your journey through the program:
+
+<Tabs>
+  <Tab title="Early Weeks (1-4)">
+    - Building base volume
+    - Getting comfortable with movements
+    - Establishing consistency
+  </Tab>
+  
+  <Tab title="Mid Program (5-8)">
+    - Increasing intensity
+    - Hitting prescribed weights more consistently
+    - Adapting to higher volume
+  </Tab>
+  
+  <Tab title="Peak Weeks (9-12)">
+    - Heaviest loads
+    - Testing strength gains
+    - Preparing for max attempts or deload
+  </Tab>
+</Tabs>
+
+## Use Cases
+
+### Comparing Performances
+
+<AccordionGroup>
+  <Accordion title="Same workout, different weeks">
+    Open "Week 2 - Day 1" and "Week 5 - Day 1" side-by-side (via multiple taps) to compare how weights increased over the program.
+  </Accordion>
+  
+  <Accordion title="Exercise progression">
+    Look for the same exercise across multiple workouts to see weight and rep progression over time.
+  </Accordion>
+  
+  <Accordion title="Volume tolerance">
+    Review high-volume weeks to see if you completed all sets or needed to cut back.
+  </Accordion>
+</AccordionGroup>
+
+### Planning Future Training
+
+<CardGroup cols={2}>
+  <Card title="Identify Weak Points" icon="magnifying-glass">
+    See which exercises or weeks were hardest to complete fully.
+  </Card>
+  <Card title="Adjust Goals" icon="sliders">
+    Use actual performance data to set more accurate goals for the next cycle.
+  </Card>
+  <Card title="Volume Tolerance" icon="battery-half">
+    Understand how much training volume you can handle consistently.
+  </Card>
+  <Card title="Exercise Selection" icon="list-check">
+    Notice which movements you complete consistently vs. struggle with.
+  </Card>
+</CardGroup>
+
+## History Data Details
+
+### What's Recorded
+
+Each workout entry stores:
+
+- **Week and day**: Program position
+- **Date logged**: Timestamp of when you logged it
+- **All exercises**: Every movement in the workout
+- **Set details**: Weight, reps, and completion status for each set
+- **Completion status**: Whether you marked the entire workout complete
+
+### Data Accuracy
+
+<Note>
+History reflects exactly what you logged, even if you later change your goals. Past workouts don't update when goals change.
+</Note>
+
+This means:
+- Historical accuracy is preserved
+- You can see what you actually lifted, not recalculated targets
+- Goal changes only affect future workouts, not logged sessions
+
+## Best Practices
+
+<CardGroup cols={2}>
+  <Card title="Review Regularly" icon="clock-rotate-left">
+    Check your history weekly to stay aware of progress and consistency.
+  </Card>
+  
+  <Card title="Don't Delete Partials" icon="hand">
+    Partial workouts are valuable data. Keep them to understand your true training volume.
+  </Card>
+  
+  <Card title="Update Immediately" icon="bolt">
+    Make corrections right away if you notice errors in logged workouts.
+  </Card>
+  
+  <Card title="Use for Motivation" icon="trophy">
+    Seeing a growing list of completed workouts is powerful for staying consistent.
+  </Card>
+</CardGroup>
+
+## Tips for History Analysis
+
+### Identifying Patterns
+
+<AccordionGroup>
+  <Accordion title="Training frequency">
+    Count workouts per week. Are you hitting your intended training frequency (3-4x/week for Rippler)?
+  </Accordion>
+  
+  <Accordion title="Time between sessions">
+    Look at date gaps. Consistent 2-3 day spacing is ideal for recovery and adaptation.
+  </Accordion>
+  
+  <Accordion title="Completion rates by week">
+    Do you complete more workouts in early weeks vs. later high-intensity weeks? This is normal.
+  </Accordion>
+  
+  <Accordion title="Set completion trends">
+    Are you finishing 90%+ of sets? If consistently lower, consider adjusting goals or managing fatigue better.
+  </Accordion>
+</AccordionGroup>
+
+### Using History for PRs
+
+Find your personal records:
+
+1. Scroll through history looking for the same exercise
+2. Note the highest weight × reps combination
+3. Use this as a benchmark for future cycles
+4. Celebrate when you beat old records
+
+<Info>
+While Rippler doesn't automatically track PRs, your history contains all the data. Review it periodically to recognize achievements.
+</Info>
+
+## Interactive Features
+
+### Smooth Animations
+
+History cards include:
+- **Press feedback**: Cards scale down slightly when tapped
+- **Spring animations**: Smooth, natural-feeling interactions
+- **Haptic responses**: Tactile confirmation when deleting (mobile only)
+
+### Performance
+
+The history is optimized for:
+- Fast loading of large workout histories
+- Smooth scrolling through 100+ entries
+- Efficient data updates and refreshes
+
+<Note>
+No matter how many workouts you log, the History tab remains fast and responsive.
+</Note>

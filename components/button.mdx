@@ -1,0 +1,272 @@
+---
+title: Button Component
+description: Animated pressable button with primary and secondary variants
+---
+
+# Button Component
+
+The `Button` component is an animated, theme-aware button with spring-based press animations. It supports primary and secondary variants with automatic text color handling.
+
+## Import
+
+```tsx
+import { Button } from "@/components/Button";
+```
+
+## Basic Usage
+
+<CodeGroup>
+```tsx Primary Button
+import { Button } from "@/components/Button";
+
+function MyScreen() {
+  return (
+    <Button onPress={() => console.log("Pressed!")}>
+      Complete Workout
+    </Button>
+  );
+}
+```
+
+```tsx Secondary Button
+import { Button } from "@/components/Button";
+
+function MyScreen() {
+  return (
+    <Button variant="secondary" onPress={() => console.log("Cancel")}>
+      Cancel
+    </Button>
+  );
+}
+```
+
+```tsx Disabled Button
+import { Button } from "@/components/Button";
+
+function MyScreen() {
+  const [loading, setLoading] = useState(false);
+  
+  return (
+    <Button disabled={loading} onPress={handleSubmit}>
+      {loading ? "Saving..." : "Save"}
+    </Button>
+  );
+}
+```
+</CodeGroup>
+
+## Props
+
+<ParamField path="onPress" type="() => void" optional>
+  Callback function invoked when the button is pressed
+</ParamField>
+
+<ParamField path="children" type="ReactNode" required>
+  The content to display inside the button (typically text)
+</ParamField>
+
+<ParamField path="style" type="StyleProp<ViewStyle>" optional>
+  Additional styles to apply to the button container
+</ParamField>
+
+<ParamField path="disabled" type="boolean" default="false">
+  Whether the button is disabled. Disabled buttons have reduced opacity and don't respond to press events
+</ParamField>
+
+<ParamField path="variant" type="'primary' | 'secondary'" default="'primary'">
+  Visual variant of the button:
+  - `primary`: Uses `theme.link` background with `theme.buttonText` text color
+  - `secondary`: Uses `theme.backgroundSecondary` background with `theme.text` text color
+</ParamField>
+
+## Real-World Examples
+
+### Workout Completion
+
+From `WorkoutScreen.tsx:486-488`:
+
+```tsx
+<Button onPress={handleCompleteWorkout} style={styles.completeButton}>
+  Complete Workout
+</Button>
+```
+
+### Modal Actions
+
+From `WorkoutScreen.tsx:569-581`:
+
+```tsx
+<View style={styles.modalButtons}>
+  <Button 
+    variant="secondary" 
+    onPress={() => setEditModalVisible(false)}
+    style={styles.modalButton}
+  >
+    Cancel
+  </Button>
+  <Button 
+    onPress={handleSaveTarget}
+    style={styles.modalButton}
+  >
+    Save
+  </Button>
+</View>
+```
+
+## Animation Behavior
+
+The Button component uses `react-native-reanimated` for smooth press animations:
+
+### Press Animation
+
+- **Press In**: Scales down to 0.98 with spring physics
+- **Press Out**: Springs back to 1.0 scale
+- **Disabled State**: No animation occurs
+
+### Spring Configuration
+
+```tsx
+const springConfig: WithSpringConfig = {
+  damping: 15,
+  mass: 0.3,
+  stiffness: 150,
+  overshootClamping: true,
+  energyThreshold: 0.001,
+};
+```
+
+This creates a snappy, natural-feeling animation that enhances the tactile experience.
+
+## Styling
+
+### Default Styles
+
+```tsx
+const styles = StyleSheet.create({
+  button: {
+    height: Spacing.buttonHeight,
+    borderRadius: BorderRadius.full,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  buttonText: {
+    fontWeight: "600",
+  },
+});
+```
+
+### Custom Styling
+
+```tsx
+<Button 
+  style={{ 
+    marginTop: 20, 
+    width: '100%' 
+  }}
+  onPress={handlePress}
+>
+  Submit
+</Button>
+```
+
+## Theme Integration
+
+The Button automatically adapts to the current theme:
+
+<Tabs>
+  <Tab title="Primary Variant">
+    ```tsx
+    backgroundColor: theme.link
+    color: theme.buttonText
+    ```
+    
+    Designed for primary actions with high emphasis.
+  </Tab>
+  <Tab title="Secondary Variant">
+    ```tsx
+    backgroundColor: theme.backgroundSecondary
+    color: theme.text
+    ```
+    
+    Used for secondary actions or cancel operations.
+  </Tab>
+  <Tab title="Disabled State">
+    ```tsx
+    opacity: 0.5
+    ```
+    
+    Maintains background color but reduces opacity.
+  </Tab>
+</Tabs>
+
+## Accessibility
+
+### Touch Target
+
+The button has a minimum height of `Spacing.buttonHeight` to ensure an accessible touch target size.
+
+### Visual Feedback
+
+- Animated scale provides clear visual feedback
+- Disabled state is visually distinct with reduced opacity
+- High contrast between background and text colors
+
+## TypeScript Interface
+
+```tsx
+interface ButtonProps {
+  onPress?: () => void;
+  children: ReactNode;
+  style?: StyleProp<ViewStyle>;
+  disabled?: boolean;
+  variant?: "primary" | "secondary";
+}
+```
+
+## Best Practices
+
+<AccordionGroup>
+  <Accordion title="Use descriptive button text">
+    Button text should clearly indicate the action that will occur:
+    
+    ```tsx
+    // Good
+    <Button>Save Changes</Button>
+    <Button>Complete Workout</Button>
+    
+    // Avoid
+    <Button>OK</Button>
+    <Button>Submit</Button>
+    ```
+  </Accordion>
+  
+  <Accordion title="Choose the right variant">
+    Use `primary` for the main action and `secondary` for alternative or cancel actions:
+    
+    ```tsx
+    <Button variant="secondary">Cancel</Button>
+    <Button variant="primary">Confirm</Button>
+    ```
+  </Accordion>
+  
+  <Accordion title="Provide loading states">
+    Use the `disabled` prop during async operations:
+    
+    ```tsx
+    const [saving, setSaving] = useState(false);
+    
+    <Button disabled={saving} onPress={handleSave}>
+      {saving ? "Saving..." : "Save"}
+    </Button>
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Source Code
+
+Location: `client/components/Button.tsx`
+
+The Button component is built using:
+- `react-native-reanimated` for animations
+- `ThemedText` for consistent typography
+- `useTheme` hook for theme integration

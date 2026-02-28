@@ -1,0 +1,572 @@
+---
+title: SetRow Component
+description: Interactive row for logging weight, reps, and set completion with real-time input and haptic feedback
+---
+
+# SetRow Component
+
+The `SetRow` component is a specialized input row used for logging individual sets during workout tracking. It displays set numbers, target values, provides inputs for weight and reps, and includes an animated completion button with haptic feedback.
+
+## Import
+
+```tsx
+import { SetRow } from "@/components/SetRow";
+import { LoggedSet } from "@/types/workout";
+```
+
+## Basic Usage
+
+<CodeGroup>
+```tsx Simple Set Row
+import { SetRow } from "@/components/SetRow";
+import { useState } from "react";
+
+function ExerciseDetail() {
+  const [loggedSet, setLoggedSet] = useState<LoggedSet>({
+    setNumber: 1,
+    weight: "",
+    reps: "",
+    completed: false
+  });
+  
+  return (
+    <SetRow
+      setNumber={1}
+      targetWeight={185}
+      targetReps={5}
+      loggedSet={loggedSet}
+      onToggleComplete={() => {
+        setLoggedSet({ ...loggedSet, completed: !loggedSet.completed });
+      }}
+      onUpdateWeight={(weight) => {
+        setLoggedSet({ ...loggedSet, weight });
+      }}
+      onUpdateReps={(reps) => {
+        setLoggedSet({ ...loggedSet, reps });
+      }}
+    />
+  );
+}
+```
+
+```tsx Multiple Sets
+import { SetRow } from "@/components/SetRow";
+import { LoggedSet } from "@/types/workout";
+import { useState } from "react";
+
+function ExerciseDetail() {
+  const [sets, setSets] = useState<LoggedSet[]>([
+    { setNumber: 1, weight: "", reps: "", completed: false },
+    { setNumber: 2, weight: "", reps: "", completed: false },
+    { setNumber: 3, weight: "", reps: "", completed: false },
+  ]);
+  
+  const handleToggle = (index: number) => {
+    const updated = [...sets];
+    updated[index] = { 
+      ...updated[index], 
+      completed: !updated[index].completed 
+    };
+    setSets(updated);
+  };
+  
+  const handleWeightChange = (index: number, weight: string) => {
+    const updated = [...sets];
+    updated[index] = { ...updated[index], weight };
+    setSets(updated);
+  };
+  
+  const handleRepsChange = (index: number, reps: string) => {
+    const updated = [...sets];
+    updated[index] = { ...updated[index], reps };
+    setSets(updated);
+  };
+  
+  return (
+    <>
+      {sets.map((set, index) => (
+        <SetRow
+          key={index}
+          setNumber={set.setNumber}
+          targetWeight={185}
+          targetReps={5}
+          loggedSet={set}
+          onToggleComplete={() => handleToggle(index)}
+          onUpdateWeight={(weight) => handleWeightChange(index, weight)}
+          onUpdateReps={(reps) => handleRepsChange(index, reps)}
+        />
+      ))}
+    </>
+  );
+}
+```
+
+```tsx Bodyweight Exercise
+import { SetRow } from "@/components/SetRow";
+
+function ExerciseDetail() {
+  return (
+    <SetRow
+      setNumber={1}
+      targetWeight="BW"
+      targetReps={10}
+      loggedSet={{ setNumber: 1, weight: "BW", reps: "", completed: false }}
+      onToggleComplete={() => {}}
+      onUpdateWeight={() => {}}
+      onUpdateReps={(reps) => console.log("Reps:", reps)}
+    />
+  );
+}
+```
+
+```tsx AMRAP Set
+import { SetRow } from "@/components/SetRow";
+
+function ExerciseDetail() {
+  return (
+    <SetRow
+      setNumber={4}
+      targetWeight={225}
+      targetReps="Max"
+      loggedSet={{ setNumber: 4, weight: "", reps: "", completed: false }}
+      onToggleComplete={() => {}}
+      onUpdateWeight={(weight) => console.log("Weight:", weight)}
+      onUpdateReps={(reps) => console.log("Max reps:", reps)}
+    />
+  );
+}
+```
+</CodeGroup>
+
+## Props
+
+<ParamField path="setNumber" type="number" required>
+  The set number to display (e.g., 1, 2, 3)
+</ParamField>
+
+<ParamField path="targetWeight" type="number | string" required>
+  Target weight for this set. Can be a number (e.g., 185) or "BW" for bodyweight exercises
+</ParamField>
+
+<ParamField path="targetReps" type="number | string" required>
+  Target reps for this set. Can be a number (e.g., 5) or "Max" for AMRAP sets
+</ParamField>
+
+<ParamField path="loggedSet" type="LoggedSet" optional>
+  The logged data for this set:
+  - `setNumber: number` - Set number
+  - `weight: number | string` - Logged weight value
+  - `reps: number | string` - Logged reps value
+  - `completed: boolean` - Whether the set is marked complete
+</ParamField>
+
+<ParamField path="onToggleComplete" type="() => void" required>
+  Callback invoked when the completion button is pressed
+</ParamField>
+
+<ParamField path="onUpdateWeight" type="(weight: string) => void" required>
+  Callback invoked when the weight input changes
+</ParamField>
+
+<ParamField path="onUpdateReps" type="(reps: string) => void" required>
+  Callback invoked when the reps input changes
+</ParamField>
+
+## LoggedSet Type
+
+```tsx
+export interface LoggedSet {
+  setNumber: number;
+  weight: number | string;
+  reps: number | string;
+  completed: boolean;
+}
+```
+
+## Visual Breakdown
+
+The SetRow has four main sections in a horizontal layout:
+
+```
+┌──────────┬────────────┬────────────┬────────┐
+│ Set 1    │ Weight     │ Reps       │   ✓    │
+│          │ [185]      │ [5]        │        │
+│          │ 185        │ 5          │        │
+└──────────┴────────────┴────────────┴────────┘
+   50px        flex:1       flex:1      40px
+```
+
+### 1. Set Number Label
+- Fixed width (50px)
+- Displays "Set {number}"
+- Secondary text color
+
+### 2. Weight Input Group
+- Target weight label above input
+- TextInput with numeric keyboard
+- Placeholder shows target value
+- Flex: 1 (equal width)
+
+### 3. Reps Input Group  
+- Target reps label above input
+- TextInput with numeric keyboard
+- Placeholder shows target value or "Max"
+- Flex: 1 (equal width)
+
+### 4. Completion Button
+- Fixed size (40x40)
+- Animated press effect
+- Circle icon when incomplete
+- Check icon when complete
+
+## Real-World Example
+
+From `WorkoutScreen.tsx:407-420`:
+
+```tsx
+{logged.sets.map((set, setIndex) => (
+  <SetRow
+    key={setIndex}
+    setNumber={set.setNumber}
+    targetWeight={effective.weight}
+    targetReps={effective.reps}
+    loggedSet={set}
+    onToggleComplete={() => handleToggleSetComplete(index, setIndex)}
+    onUpdateWeight={(weight) =>
+      handleUpdateWeight(index, setIndex, weight)
+    }
+    onUpdateReps={(reps) => handleUpdateReps(index, setIndex, reps)}
+  />
+))}
+```
+
+## State Management Pattern
+
+The SetRow is a controlled component. Here's the recommended pattern:
+
+```tsx
+function ExerciseDetail() {
+  const [loggedWorkout, setLoggedWorkout] = useState<LoggedWorkout>({
+    exercises: [
+      {
+        tier: "T1",
+        exercise: "Bench Press",
+        sets: [
+          { setNumber: 1, weight: "", reps: "", completed: false },
+          { setNumber: 2, weight: "", reps: "", completed: false },
+          { setNumber: 3, weight: "", reps: "", completed: false },
+        ]
+      }
+    ]
+  });
+
+  const handleToggleSetComplete = async (exerciseIndex: number, setIndex: number) => {
+    const updated = { ...loggedWorkout };
+    updated.exercises = [...updated.exercises];
+    updated.exercises[exerciseIndex] = { ...updated.exercises[exerciseIndex] };
+    updated.exercises[exerciseIndex].sets = [...updated.exercises[exerciseIndex].sets];
+    updated.exercises[exerciseIndex].sets[setIndex] = {
+      ...updated.exercises[exerciseIndex].sets[setIndex],
+      completed: !updated.exercises[exerciseIndex].sets[setIndex].completed,
+    };
+    
+    setLoggedWorkout(updated);
+    await saveLoggedWorkout(updated);
+  };
+
+  const handleUpdateWeight = async (
+    exerciseIndex: number,
+    setIndex: number,
+    weight: string
+  ) => {
+    const updated = { ...loggedWorkout };
+    updated.exercises = [...updated.exercises];
+    updated.exercises[exerciseIndex] = { ...updated.exercises[exerciseIndex] };
+    updated.exercises[exerciseIndex].sets = [...updated.exercises[exerciseIndex].sets];
+    updated.exercises[exerciseIndex].sets[setIndex] = {
+      ...updated.exercises[exerciseIndex].sets[setIndex],
+      weight,
+    };
+    
+    setLoggedWorkout(updated);
+    await saveLoggedWorkout(updated);
+  };
+
+  // Similar for handleUpdateReps...
+}
+```
+
+## Completion States
+
+The SetRow has two visual states based on `loggedSet.completed`:
+
+<Tabs>
+  <Tab title="Incomplete">
+    **Background**: `theme.backgroundSecondary`
+    
+    **Button**:
+    - Background: `theme.backgroundDefault`
+    - Border: `theme.border`
+    - Icon: Circle outline (`circle` icon)
+    - Icon color: `theme.textSecondary`
+    
+    ```tsx
+    <SetRow
+      loggedSet={{ setNumber: 1, weight: "", reps: "", completed: false }}
+      // other props...
+    />
+    ```
+  </Tab>
+  
+  <Tab title="Complete">
+    **Background**: `theme.success` with 15% opacity (`${theme.success}15`)
+    
+    **Button**:
+    - Background: `theme.success`
+    - Border: `theme.success`
+    - Icon: Checkmark (`check` icon)
+    - Icon color: `#FFFFFF`
+    
+    ```tsx
+    <SetRow
+      loggedSet={{ setNumber: 1, weight: "185", reps: "5", completed: true }}
+      // other props...
+    />
+    ```
+  </Tab>
+</Tabs>
+
+## Animation Behavior
+
+### Completion Button Animation
+
+When the completion button is pressed:
+
+```tsx
+const handleToggle = () => {
+  if (Platform.OS !== "web") {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+  }
+  scale.value = withSequence(
+    withSpring(0.95, { damping: 15 }),
+    withSpring(1, { damping: 15 })
+  );
+  onToggleComplete();
+};
+```
+
+1. **Haptic Feedback**: Medium impact on iOS/Android
+2. **Scale Down**: Animates to 0.95 with spring
+3. **Scale Up**: Springs back to 1.0
+4. **Callback**: Invokes `onToggleComplete`
+
+## Input Handling
+
+### Weight Input
+
+```tsx
+<TextInput
+  style={[styles.input, { ... }]}
+  value={loggedSet?.weight?.toString() ?? ""}
+  onChangeText={onUpdateWeight}
+  placeholder={targetWeight === "BW" ? "BW" : String(targetWeight)}
+  placeholderTextColor={theme.textSecondary}
+  keyboardType="numeric"
+  testID={`set-${setNumber}-weight-input`}
+/>
+```
+
+- **Value**: Controlled by `loggedSet.weight`
+- **Placeholder**: Shows target value
+- **Keyboard**: Numeric for easy number entry
+- **Test ID**: For automated testing
+
+### Reps Input
+
+```tsx
+<TextInput
+  style={[styles.input, { ... }]}
+  value={loggedSet?.reps?.toString() ?? ""}
+  onChangeText={onUpdateReps}
+  placeholder={targetReps === "Max" ? "Max" : String(targetReps)}
+  placeholderTextColor={theme.textSecondary}
+  keyboardType="numeric"
+  testID={`set-${setNumber}-reps-input`}
+/>
+```
+
+- **Value**: Controlled by `loggedSet.reps`
+- **Placeholder**: Shows "Max" for AMRAP or target number
+- **Keyboard**: Numeric input
+- **Test ID**: For automated testing
+
+## Styling
+
+### Default Styles
+
+```tsx
+const styles = StyleSheet.create({
+  container: {
+    flexDirection: "row",
+    alignItems: "center",
+    padding: Spacing.md,
+    borderRadius: BorderRadius.xs,
+    marginBottom: Spacing.sm,
+    gap: Spacing.md,
+  },
+  setNumber: {
+    width: 50,
+  },
+  setLabel: {
+    fontSize: 14,
+    fontWeight: "500",
+  },
+  inputGroup: {
+    flex: 1,
+  },
+  targetLabel: {
+    fontSize: 11,
+    marginBottom: 2,
+  },
+  input: {
+    height: 36,
+    borderRadius: BorderRadius.xs,
+    borderWidth: 1,
+    paddingHorizontal: Spacing.sm,
+    fontSize: 14,
+    fontWeight: "500",
+  },
+  checkButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 2,
+  },
+});
+```
+
+### Theme Colors
+
+- **Container Background (incomplete)**: `theme.backgroundSecondary`
+- **Container Background (complete)**: `${theme.success}15` (15% opacity)
+- **Input Background**: `theme.backgroundDefault`
+- **Input Border**: `theme.border`
+- **Input Text**: `theme.text`
+- **Labels**: `theme.textSecondary`
+- **Placeholder**: `theme.textSecondary`
+
+## Test IDs
+
+The SetRow includes test IDs for automated testing:
+
+```tsx
+testID={`set-${setNumber}-weight-input`}
+testID={`set-${setNumber}-reps-input`}
+testID={`set-${setNumber}-complete-button`}
+```
+
+**Example test IDs:**
+- `set-1-weight-input`
+- `set-1-reps-input`
+- `set-1-complete-button`
+
+## Best Practices
+
+<AccordionGroup>
+  <Accordion title="Persist data on every change">
+    Save logged data immediately when inputs change:
+    
+    ```tsx
+    const handleUpdateWeight = async (index: number, weight: string) => {
+      // Update state
+      const updated = { ...loggedWorkout };
+      updated.exercises[exerciseIndex].sets[index].weight = weight;
+      setLoggedWorkout(updated);
+      
+      // Persist immediately
+      await saveLoggedWorkout(updated);
+    };
+    ```
+  </Accordion>
+  
+  <Accordion title="Handle special values gracefully">
+    Support both numbers and special strings:
+    
+    ```tsx
+    // Bodyweight
+    targetWeight="BW"
+    loggedSet={{ weight: "BW", ... }}
+    
+    // AMRAP
+    targetReps="Max"
+    loggedSet={{ reps: "12", ... }}  // User enters actual reps achieved
+    ```
+  </Accordion>
+  
+  <Accordion title="Provide haptic feedback">
+    The component includes haptic feedback on completion toggle. Ensure expo-haptics is installed:
+    
+    ```bash
+    npx expo install expo-haptics
+    ```
+  </Accordion>
+  
+  <Accordion title="Use controlled inputs">
+    Always control inputs through state:
+    
+    ```tsx
+    // Good - controlled
+    <SetRow
+      loggedSet={sets[index]}
+      onUpdateWeight={(weight) => updateSet(index, { weight })}
+    />
+    
+    // Bad - uncontrolled
+    <SetRow
+      loggedSet={undefined}
+      onUpdateWeight={() => {}}
+    />
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Accessibility
+
+- **Touch Targets**: Inputs and button meet minimum 40px size
+- **Keyboard Type**: Numeric keyboard for easier number entry
+- **Visual Feedback**: Clear completion state with color and icon
+- **Haptic Feedback**: Tactile confirmation on completion (iOS/Android)
+- **Test IDs**: Support for automated testing and screen readers
+
+## Platform Differences
+
+### Haptic Feedback
+
+Haptics are disabled on web:
+
+```tsx
+if (Platform.OS !== "web") {
+  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+}
+```
+
+### Keyboard Behavior
+
+Numeric keyboard appears automatically on mobile when inputs are focused.
+
+## Dependencies
+
+- `ThemedText` - For labels
+- `useTheme` - For theme integration
+- `react-native-reanimated` - For animations
+- `expo-haptics` - For haptic feedback
+- `@expo/vector-icons` - For check/circle icons
+- `@/types/workout` - For TypeScript interfaces
+
+## Source Code
+
+Location: `client/components/SetRow.tsx:1-181`
+
+The SetRow component is designed to be used in lists of sets for exercise logging, providing a consistent and intuitive interface for workout tracking.

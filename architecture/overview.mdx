@@ -1,0 +1,311 @@
+---
+title: System Architecture Overview
+description: Comprehensive overview of Rippler's React Native architecture, tech stack, and design patterns
+---
+
+## Architecture Philosophy
+
+Rippler is built as a modern **React Native** mobile application using **Expo**, following a component-based architecture with clear separation of concerns. The app emphasizes:
+
+- **Type safety** with TypeScript
+- **Local-first data** with AsyncStorage
+- **Server sync** with React Query
+- **Declarative UI** with React Native components
+- **Platform-specific optimizations** for iOS and Android
+
+## Tech Stack
+
+<CardGroup cols={2}>
+  <Card title="Framework" icon="react">
+    React Native with Expo SDK for cross-platform development
+  </Card>
+  <Card title="Navigation" icon="route">
+    React Navigation v6 with native stack and tab navigators
+  </Card>
+  <Card title="State Management" icon="database">
+    React Query for server state, AsyncStorage for local persistence
+  </Card>
+  <Card title="Type Safety" icon="shield">
+    TypeScript for type-safe development
+  </Card>
+</CardGroup>
+
+## Core Dependencies
+
+<CodeGroup>
+```json App Dependencies
+{
+  "@react-navigation/native": "Navigation container",
+  "@react-navigation/bottom-tabs": "Tab navigation",
+  "@react-navigation/native-stack": "Stack navigation",
+  "@tanstack/react-query": "Server state management",
+  "@react-native-async-storage/async-storage": "Local storage",
+  "react-native-gesture-handler": "Gesture system",
+  "react-native-keyboard-controller": "Keyboard handling",
+  "react-native-safe-area-context": "Safe area insets",
+  "expo-blur": "Native blur effects",
+  "expo-status-bar": "Status bar customization"
+}
+```
+</CodeGroup>
+
+## Application Entry Point
+
+The app bootstraps through a series of context providers that establish the runtime environment:
+
+```tsx client/App.tsx
+import React from "react";
+import { StyleSheet } from "react-native";
+import { NavigationContainer } from "@react-navigation/native";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { KeyboardProvider } from "react-native-keyboard-controller";
+import { SafeAreaProvider } from "react-native-safe-area-context";
+import { StatusBar } from "expo-status-bar";
+
+import { QueryClientProvider } from "@tanstack/react-query";
+import { queryClient } from "@/lib/query-client";
+
+import RootStackNavigator from "@/navigation/RootStackNavigator";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
+
+export default function App() {
+  return (
+    <ErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <SafeAreaProvider>
+          <GestureHandlerRootView style={styles.root}>
+            <KeyboardProvider>
+              <NavigationContainer>
+                <RootStackNavigator />
+              </NavigationContainer>
+              <StatusBar style="auto" />
+            </KeyboardProvider>
+          </GestureHandlerRootView>
+        </SafeAreaProvider>
+      </QueryClientProvider>
+    </ErrorBoundary>
+  );
+}
+```
+
+### Provider Hierarchy
+
+<Steps>
+  <Step title="ErrorBoundary">
+    Catches React errors and displays fallback UI (client/components/ErrorBoundary.tsx)
+  </Step>
+  <Step title="QueryClientProvider">
+    Provides React Query client for server state management and API calls
+  </Step>
+  <Step title="SafeAreaProvider">
+    Handles device-specific safe area insets (notches, status bars)
+  </Step>
+  <Step title="GestureHandlerRootView">
+    Enables native gesture handling throughout the app
+  </Step>
+  <Step title="KeyboardProvider">
+    Manages keyboard appearance and dismissal behavior
+  </Step>
+  <Step title="NavigationContainer">
+    React Navigation root container managing navigation state
+  </Step>
+</Steps>
+
+## Project Structure
+
+```
+client/
+├── App.tsx                 # Application entry point
+├── components/             # Reusable UI components
+│   ├── ThemedView.tsx     # Theme-aware View wrapper
+│   ├── ThemedText.tsx     # Theme-aware Text wrapper
+│   ├── Button.tsx         # Custom button component
+│   ├── Card.tsx           # Card container
+│   ├── ErrorBoundary.tsx  # Error handling
+│   └── ...
+├── constants/
+│   └── theme.ts           # Theme configuration (colors, spacing, typography)
+├── data/
+│   └── rippler-program.ts # Workout program data
+├── hooks/
+│   ├── useTheme.ts        # Theme hook
+│   ├── useColorScheme.ts  # Color scheme detection
+│   └── useScreenOptions.ts # Navigation screen options
+├── lib/
+│   ├── storage.ts         # AsyncStorage abstraction layer
+│   └── query-client.ts    # React Query configuration
+├── navigation/
+│   ├── RootStackNavigator.tsx      # Root stack (Main, Workout)
+│   ├── MainTabNavigator.tsx        # Bottom tabs (Program, Goals, History, Exercises)
+│   ├── ProgramStackNavigator.tsx   # Program stack
+│   ├── HistoryStackNavigator.tsx   # History stack
+│   ├── ExercisesStackNavigator.tsx # Exercises stack
+│   └── GoalsStackNavigator.tsx     # Goals stack
+├── screens/
+│   ├── ProgramScreen.tsx   # Main program view
+│   ├── WorkoutScreen.tsx   # Workout logging
+│   ├── HistoryScreen.tsx   # Workout history
+│   ├── ExercisesScreen.tsx # Exercise management
+│   └── GoalsScreen.tsx     # Goal tracking
+└── types/
+    └── workout.ts          # TypeScript type definitions
+```
+
+## Data Layer Architecture
+
+<Tabs>
+  <Tab title="Local Storage">
+    **AsyncStorage** provides persistent local data storage for:
+    
+    - Exercises list (`@rippler/exercises`)
+    - Logged workouts (`@rippler/logged_workouts`)
+    - Current week (`@rippler/current_week`)
+    - Target overrides (`@rippler/target_overrides`)
+    - Goal weights (`@rippler/goal_weights`)
+    
+    See [Data Flow](/architecture/data-flow) for detailed storage patterns.
+  </Tab>
+  
+  <Tab title="Server State">
+    **React Query** manages server communication with:
+    
+    - Automatic query caching
+    - Background refetching
+    - Optimistic updates
+    - Request deduplication
+    
+    ```ts client/lib/query-client.ts
+    export const queryClient = new QueryClient({
+      defaultOptions: {
+        queries: {
+          queryFn: getQueryFn({ on401: "throw" }),
+          refetchInterval: false,
+          refetchOnWindowFocus: false,
+          staleTime: Infinity,
+          retry: false,
+        },
+      },
+    });
+    ```
+  </Tab>
+  
+  <Tab title="Type System">
+    TypeScript provides compile-time type safety:
+    
+    ```ts client/types/workout.ts
+    export type Tier = "T1" | "T2" | "T3a" | "T3b";
+    
+    export interface Exercise {
+      id: string;
+      name: string;
+      notes?: string;
+    }
+    
+    export interface LoggedWorkout {
+      id: string;
+      week: number;
+      day: string;
+      dateLogged: string;
+      exercises: LoggedExercise[];
+      completed: boolean;
+    }
+    ```
+  </Tab>
+</Tabs>
+
+## Design Patterns
+
+### Component Composition
+
+Rippler uses **composition over inheritance** with themed wrapper components:
+
+```tsx Example: ThemedView
+import { View, type ViewProps } from "react-native";
+import { useTheme } from "@/hooks/useTheme";
+
+export function ThemedView({ style, lightColor, darkColor, ...otherProps }: ThemedViewProps) {
+  const { theme, isDark } = useTheme();
+  
+  const backgroundColor = isDark && darkColor 
+    ? darkColor 
+    : !isDark && lightColor 
+      ? lightColor 
+      : theme.backgroundRoot;
+  
+  return <View style={[{ backgroundColor }, style]} {...otherProps} />;
+}
+```
+
+### Custom Hooks
+
+Business logic is extracted into reusable hooks:
+
+- `useTheme()` - Theme and color scheme access
+- `useColorScheme()` - System color scheme detection  
+- `useScreenOptions()` - Navigation screen configuration
+
+### Error Boundaries
+
+Error boundaries catch rendering errors and prevent app crashes:
+
+```tsx client/App.tsx:17
+<ErrorBoundary>
+  <QueryClientProvider client={queryClient}>
+    {/* App content */}
+  </QueryClientProvider>
+</ErrorBoundary>
+```
+
+## Platform-Specific Optimizations
+
+<Note>
+Rippler leverages platform-specific features for optimal UX on iOS and Android.
+</Note>
+
+### iOS-Specific Features
+
+- **Blur effects** on tab bar and navigation headers using `expo-blur`
+- **SF Pro Rounded** font family for native feel
+- **Translucent headers** with native blur
+
+```tsx client/navigation/MainTabNavigator.tsx:39
+tabBarBackground: () =>
+  Platform.OS === "ios" ? (
+    <BlurView
+      intensity={100}
+      tint={isDark ? "dark" : "light"}
+      style={StyleSheet.absoluteFill}
+    />
+  ) : null,
+```
+
+### Android-Specific Features
+
+- **Solid backgrounds** for better performance
+- **Elevation** for depth perception
+- **Roboto** font family
+
+## Performance Considerations
+
+1. **Lazy Loading**: Components are loaded on-demand
+2. **Memoization**: React.memo and useMemo prevent unnecessary re-renders
+3. **FlatList**: Virtualized lists for workout history
+4. **Image Optimization**: Cached and optimized assets
+5. **Bundle Splitting**: Code splitting with dynamic imports
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Data Flow" icon="arrows-turn-right" href="/architecture/data-flow">
+    Learn how data flows through the application
+  </Card>
+  <Card title="Navigation" icon="route" href="/architecture/navigation">
+    Understand the navigation structure
+  </Card>
+  <Card title="Theming" icon="palette" href="/architecture/theming">
+    Explore the theming system
+  </Card>
+  <Card title="Components" icon="cube" href="/components/overview">
+    Browse available UI components
+  </Card>
+</CardGroup>

@@ -1,0 +1,172 @@
+---
+title: Workout Types
+description: TypeScript interfaces for workout planning, logging, and program management
+---
+
+## Overview
+
+The workout types define the core data structures for managing training programs, tracking daily workouts, and overriding default targets in the Rippler app.
+
+## WorkoutDay
+
+Represents a planned workout day with target exercises.
+
+```typescript
+export interface WorkoutDay {
+  week: number;
+  day: string;
+  dateSerial: number;
+  exercises: TargetExercise[];
+}
+```
+
+<ParamField path="week" type="number" required>
+  The week number in the training program (e.g., 1, 2, 3...)
+</ParamField>
+
+<ParamField path="day" type="string" required>
+  The day identifier (e.g., "Monday", "Day 1", "A")
+</ParamField>
+
+<ParamField path="dateSerial" type="number" required>
+  A serialized date value used for scheduling and sorting workouts chronologically
+</ParamField>
+
+<ParamField path="exercises" type="TargetExercise[]" required>
+  Array of exercises planned for this workout day. See [TargetExercise](/api/types/exercise#targetexercise) for details.
+</ParamField>
+
+### Usage
+
+WorkoutDay is used to structure planned training sessions within a program. Each day contains multiple exercises with prescribed sets, reps, and weights.
+
+---
+
+## LoggedWorkout
+
+Represents a completed workout session with actual performance data.
+
+```typescript
+export interface LoggedWorkout {
+  id: string;
+  week: number;
+  day: string;
+  dateLogged: string;
+  exercises: LoggedExercise[];
+  completed: boolean;
+}
+```
+
+<ParamField path="id" type="string" required>
+  Unique identifier for the logged workout session
+</ParamField>
+
+<ParamField path="week" type="number" required>
+  The week number this workout belongs to in the training program
+</ParamField>
+
+<ParamField path="day" type="string" required>
+  The day identifier matching the planned WorkoutDay
+</ParamField>
+
+<ParamField path="dateLogged" type="string" required>
+  ISO date string when the workout was completed (e.g., "2026-02-28")
+</ParamField>
+
+<ParamField path="exercises" type="LoggedExercise[]" required>
+  Array of exercises that were performed. See [LoggedExercise](/api/types/exercise#loggedexercise) for details.
+</ParamField>
+
+<ParamField path="completed" type="boolean" required>
+  Whether the entire workout session was completed
+</ParamField>
+
+### Usage
+
+LoggedWorkout tracks actual training sessions, allowing users to review their performance history and track progress over time.
+
+<Note>
+The `completed` flag can be used to distinguish between partial workouts (incomplete) and fully finished sessions.
+</Note>
+
+---
+
+## WorkoutProgram
+
+Represents a complete training program with multiple weeks of planned workouts.
+
+```typescript
+export interface WorkoutProgram {
+  exercises: string[];
+  weeks: Record<string, WorkoutDay[]>;
+}
+```
+
+<ParamField path="exercises" type="string[]" required>
+  Complete list of all unique exercises included in the program
+</ParamField>
+
+<ParamField path="weeks" type="Record<string, WorkoutDay[]>" required>
+  Dictionary mapping week identifiers (e.g., "1", "2", "3") to arrays of WorkoutDay objects for that week
+</ParamField>
+
+### Usage
+
+WorkoutProgram structures an entire training cycle, typically spanning multiple weeks. The `exercises` array provides a master list of all movements in the program, while `weeks` organizes the daily workouts chronologically.
+
+<Tip>
+The exercises array is useful for displaying a program overview or filtering/searching exercises across the entire program.
+</Tip>
+
+---
+
+## TargetOverride
+
+Allows customization of prescribed targets for specific exercises in the program.
+
+```typescript
+export interface TargetOverride {
+  week: number;
+  day: string;
+  exerciseIndex: number;
+  weight?: number | string;
+  reps?: number | string;
+  sets?: number | string;
+}
+```
+
+<ParamField path="week" type="number" required>
+  The week number where the override applies
+</ParamField>
+
+<ParamField path="day" type="string" required>
+  The day identifier where the override applies
+</ParamField>
+
+<ParamField path="exerciseIndex" type="number" required>
+  Zero-based index of the exercise within the WorkoutDay.exercises array
+</ParamField>
+
+<ParamField path="weight" type="number | string">
+  Override for the target weight. Can be numeric or string (e.g., "BW" for bodyweight)
+</ParamField>
+
+<ParamField path="reps" type="number | string">
+  Override for the target reps. Can be numeric or string (e.g., "AMRAP")
+</ParamField>
+
+<ParamField path="sets" type="number | string">
+  Override for the target sets. Can be numeric or string for special protocols
+</ParamField>
+
+### Usage
+
+TargetOverride enables users to adjust program prescriptions without modifying the base program. This is useful for:
+
+- Adjusting weights based on individual strength levels
+- Modifying rep schemes for injury management
+- Personalizing programs while maintaining the original template
+
+<Warning>
+All override fields are optional. Only provide the fields you want to override; other fields will use the default values from TargetExercise.
+</Warning>

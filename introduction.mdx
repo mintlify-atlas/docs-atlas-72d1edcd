@@ -1,0 +1,254 @@
+---
+title: Introduction to Rippler
+description: A focused workout tracking app that transforms complex spreadsheet programs into a distraction-free mobile experience for serious lifters.
+---
+
+## Transform Your Training
+
+Rippler is a React Native workout tracker built with Expo that turns spreadsheet-based training programs into an intuitive mobile experience. Designed for intermediate and advanced lifters following structured programs, Rippler eliminates distractions and keeps you focused on what matters: hitting your targets and tracking progress.
+
+<CardGroup cols={2}>
+  <Card
+    title="Structured Programs"
+    icon="calendar"
+    iconType="duotone"
+  >
+    Built-in support for multi-week periodized programs with tier-based training (T1, T2, T3) and automatic progressive overload calculations.
+  </Card>
+  <Card
+    title="Intelligent Tracking"
+    icon="chart-line"
+    iconType="duotone"
+  >
+    Dynamic weight calculations based on your 1RM goals, automatic target adjustments, and comprehensive workout logging with set-by-set tracking.
+  </Card>
+  <Card
+    title="Clean Interface"
+    icon="mobile"
+    iconType="duotone"
+  >
+    Minimalist design with large tappable cards, satisfying haptic feedback, and zero clutter. See your workout at a glance and focus on training.
+  </Card>
+  <Card
+    title="Cross-Platform"
+    icon="devices"
+    iconType="duotone"
+  >
+    Built with React Native and Expo, supporting iOS, Android, and web with a single codebase and native performance.
+  </Card>
+</CardGroup>
+
+## Key Features
+
+<AccordionGroup>
+  <Accordion title="Multi-Week Program Management" icon="calendar-days">
+    Rippler includes a complete 12-week periodized training program with 4 training days per week. The program follows a tier-based structure:
+    
+    - **T1 exercises**: Main compound lifts (Bench, Squat, OHP, Deadlift)
+    - **T2 exercises**: Variation work at higher volume
+    - **T3 exercises**: Accessory work taken to maximum reps
+    
+    Each week follows specific set/rep schemes with automatic weight calculations based on your training maxes.
+  </Accordion>
+
+  <Accordion title="Smart Weight Calculations" icon="calculator">
+    The app automatically calculates target weights for each exercise based on:
+    
+    - Your 1RM goals stored in AsyncStorage
+    - Week-specific percentages (e.g., Week 1: 85%, Week 2: 90%)
+    - Exercise-specific modifiers for variations
+    - Manual overrides when you need to adjust targets
+    
+    All calculations happen in real-time, so updating your goals instantly updates all future workouts.
+  </Accordion>
+
+  <Accordion title="Detailed Workout Logging" icon="list-check">
+    Track every set with precision:
+    
+    - Weight lifted (supports lbs, kg, or bodyweight)
+    - Reps completed (including "to failure" sets)
+    - Checkbox completion with haptic feedback
+    - Expandable exercise cards for clean UI
+    - Progress bars showing overall workout completion
+    
+    All data persists locally using React Native AsyncStorage.
+  </Accordion>
+
+  <Accordion title="History & Progress Tracking" icon="chart-simple">
+    View your complete training history:
+    
+    - Calendar view showing completed workouts
+    - Week-by-week progression
+    - Exercise history with weight/rep trends
+    - Goal tracking for 1RM improvements
+    
+    The history screen uses React Query for efficient data loading and caching.
+  </Accordion>
+</AccordionGroup>
+
+## Technical Architecture
+
+Rippler is built as a modern React Native application using industry-standard tools:
+
+<CodeGroup>
+```json package.json
+{
+  "main": "client/index.js",
+  "dependencies": {
+    "expo": "^54.0.23",
+    "react": "19.1.0",
+    "react-native": "0.81.5",
+    "@react-navigation/native": "^7.1.8",
+    "@react-navigation/bottom-tabs": "^7.4.0",
+    "@tanstack/react-query": "^5.90.7",
+    "@react-native-async-storage/async-storage": "^2.2.0",
+    "expo-haptics": "~15.0.7",
+    "react-native-reanimated": "~4.1.1",
+    "drizzle-orm": "^0.39.3",
+    "express": "^5.0.1"
+  }
+}
+```
+
+```json app.json
+{
+  "expo": {
+    "name": "Rippler",
+    "slug": "rippler",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "scheme": "rippler",
+    "newArchEnabled": true,
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.rippler.app"
+    },
+    "android": {
+      "package": "com.rippler.app",
+      "edgeToEdgeEnabled": true
+    },
+    "experiments": {
+      "reactCompiler": true
+    }
+  }
+}
+```
+</CodeGroup>
+
+### Stack Overview
+
+- **Frontend**: React Native 0.81.5 with React 19.1.0
+- **Navigation**: React Navigation v7 (bottom tabs + native stack)
+- **State Management**: TanStack Query v5 for server state
+- **Storage**: AsyncStorage for local persistence
+- **Backend**: Express.js server with Drizzle ORM
+- **Database**: PostgreSQL with Drizzle migrations
+- **UI Components**: Custom themed components with Expo Haptics
+- **Animations**: React Native Reanimated v4
+
+<Note>
+  Rippler uses **React Compiler** (experimental) and the new React Native architecture for improved performance.
+</Note>
+
+## Project Structure
+
+```
+rippler/
+├── client/                 # React Native app
+│   ├── components/        # Reusable UI components
+│   │   ├── Button.tsx
+│   │   ├── Card.tsx
+│   │   ├── SetRow.tsx
+│   │   ├── TierBadge.tsx
+│   │   └── ThemedText.tsx
+│   ├── screens/           # Main app screens
+│   │   ├── WorkoutScreen.tsx
+│   │   ├── ProgramScreen.tsx
+│   │   ├── HistoryScreen.tsx
+│   │   ├── GoalsScreen.tsx
+│   │   └── ExercisesScreen.tsx
+│   ├── navigation/        # Navigation setup
+│   │   ├── RootStackNavigator.tsx
+│   │   └── MainTabNavigator.tsx
+│   ├── data/              # Program data & calculations
+│   │   ├── rippler-program.ts
+│   │   └── exercise-percentages.ts
+│   ├── lib/               # Utilities
+│   │   ├── storage.ts
+│   │   └── query-client.ts
+│   ├── hooks/             # Custom hooks
+│   └── constants/         # Theme & constants
+├── server/                # Express backend
+│   ├── index.ts
+│   ├── routes.ts
+│   └── storage.ts
+├── shared/                # Shared types & schemas
+│   └── schema.ts
+└── package.json
+```
+
+## Quick Links
+
+<CardGroup cols={2}>
+  <Card
+    title="Quick Start"
+    icon="rocket"
+    href="/quickstart"
+  >
+    Get Rippler running on your device in under 5 minutes
+  </Card>
+  <Card
+    title="Installation Guide"
+    icon="download"
+    href="/installation"
+  >
+    Complete setup instructions for development and production
+  </Card>
+  <Card
+    title="API Reference"
+    icon="code"
+    href="/api/storage/overview"
+  >
+    Explore storage APIs, hooks, and type definitions
+  </Card>
+  <Card
+    title="Architecture"
+    icon="diagram-project"
+    href="/architecture/overview"
+  >
+    Deep dive into the technical architecture and design patterns
+  </Card>
+</CardGroup>
+
+## Design Philosophy
+
+<CardGroup cols={1}>
+  <Card title="Focused and Athletic" icon="bullseye">
+    Rippler embraces a **distraction-free** design philosophy. Every screen is optimized for the gym environment:
+    
+    - **Large touch targets** for easy interaction during rest periods
+    - **Minimal text** with bold typography for quick scanning
+    - **Purposeful animations** that provide feedback without slowing you down
+    - **Athletic blue color palette** (#1E88E5) that feels confident and energetic
+  </Card>
+</CardGroup>
+
+<Warning>
+  Rippler is designed for **intermediate to advanced lifters** who understand periodization and percentage-based training. Beginners may benefit from a simpler linear progression app.
+</Warning>
+
+## What's Next?
+
+Ready to start tracking your workouts with Rippler?
+
+<Steps>
+  <Step title="Quick Start">
+    Follow the [Quick Start guide](/quickstart) to run the app in under 5 minutes
+  </Step>
+  <Step title="Complete Setup">
+    Read the [Installation guide](/installation) for full development environment setup
+  </Step>
+  <Step title="Customize Your Program">
+    Learn how to modify the built-in Rippler program or add your own
+  </Step>
+</Steps>

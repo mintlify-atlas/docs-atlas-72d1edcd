@@ -1,0 +1,246 @@
+---
+title: useColorScheme
+description: Detect the user's system color scheme preference (light or dark mode)
+---
+
+The `useColorScheme` hook provides access to the user's system-level color scheme preference. It returns either `"light"`, `"dark"`, or `null` if the preference cannot be determined.
+
+<Info>
+  This hook is a platform-aware wrapper around React Native's `useColorScheme`. On web, it includes special handling for static rendering and hydration.
+</Info>
+
+## Usage
+
+```tsx
+import { useColorScheme } from "@/hooks/useColorScheme";
+
+export function ThemeToggle() {
+  const colorScheme = useColorScheme();
+
+  return (
+    <View>
+      <Text>Current scheme: {colorScheme ?? "unknown"}</Text>
+    </View>
+  );
+}
+```
+
+## Return Value
+
+<ResponseField name="colorScheme" type="'light' | 'dark' | null">
+  The current color scheme preference:
+  - `"light"` - Light mode is active
+  - `"dark"` - Dark mode is active
+  - `null` - Color scheme cannot be determined (rare)
+  
+  On web platforms, this defaults to `"light"` during SSR/static rendering and updates to the actual system preference after client-side hydration.
+</ResponseField>
+
+## Platform Behavior
+
+<Tabs>
+  <Tab title="iOS & Android">
+    On native platforms, this hook directly returns the value from React Native's `useColorScheme` hook, which reflects the system-level appearance setting.
+    
+    ```tsx
+    // hooks/useColorScheme.ts (native)
+    export { useColorScheme } from "react-native";
+    ```
+    
+    The value updates automatically when the user changes their system appearance settings.
+  </Tab>
+  
+  <Tab title="Web">
+    On web platforms, the hook includes special handling for static rendering and hydration:
+    
+    ```tsx
+    // hooks/useColorScheme.web.ts
+    export function useColorScheme() {
+      const [hasHydrated, setHasHydrated] = useState(false);
+
+      useEffect(() => {
+        setHasHydrated(true);
+      }, []);
+
+      const colorScheme = useRNColorScheme();
+
+      if (hasHydrated) {
+        return colorScheme;
+      }
+
+      return "light";
+    }
+    ```
+    
+    This ensures that:
+    1. During server-side rendering or static generation, it returns `"light"` for consistency
+    2. After the client-side JavaScript loads and hydrates, it returns the actual system preference
+    3. Prevents hydration mismatches between server and client rendering
+  </Tab>
+</Tabs>
+
+## Examples
+
+### Basic Color Scheme Detection
+
+```tsx
+import { View, Text, Switch } from "react-native";
+import { useColorScheme } from "@/hooks/useColorScheme";
+
+export function AppearanceInfo() {
+  const colorScheme = useColorScheme();
+
+  return (
+    <View>
+      <Text>Your system is in {colorScheme} mode</Text>
+      {colorScheme === "dark" && (
+        <Text>Dark mode helps reduce eye strain at night</Text>
+      )}
+    </View>
+  );
+}
+```
+
+### Using with Theme Selection
+
+```tsx
+import { useState, useEffect } from "react";
+import { View, Text, Button } from "react-native";
+import { useColorScheme } from "@/hooks/useColorScheme";
+
+type ThemePreference = "light" | "dark" | "auto";
+
+export function ThemeSelector() {
+  const systemColorScheme = useColorScheme();
+  const [preference, setPreference] = useState<ThemePreference>("auto");
+  const [activeTheme, setActiveTheme] = useState<"light" | "dark">("light");
+
+  useEffect(() => {
+    if (preference === "auto") {
+      setActiveTheme(systemColorScheme ?? "light");
+    } else {
+      setActiveTheme(preference);
+    }
+  }, [preference, systemColorScheme]);
+
+  return (
+    <View>
+      <Text>Theme Preference: {preference}</Text>
+      <Text>Active Theme: {activeTheme}</Text>
+      <Text>System Preference: {systemColorScheme ?? "unknown"}</Text>
+      
+      <Button title="Light" onPress={() => setPreference("light")} />
+      <Button title="Dark" onPress={() => setPreference("dark")} />
+      <Button title="Auto" onPress={() => setPreference("auto")} />
+    </View>
+  );
+}
+```
+
+### Conditional Asset Loading
+
+```tsx
+import { Image } from "react-native";
+import { useColorScheme } from "@/hooks/useColorScheme";
+
+interface ThemedIconProps {
+  lightSource: any;
+  darkSource: any;
+  size?: number;
+}
+
+export function ThemedIcon({ lightSource, darkSource, size = 24 }: ThemedIconProps) {
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === "dark";
+
+  return (
+    <Image
+      source={isDark ? darkSource : lightSource}
+      style={{ width: size, height: size }}
+    />
+  );
+}
+```
+
+### Handling Null Color Scheme
+
+```tsx
+import { useColorScheme } from "@/hooks/useColorScheme";
+import { Colors } from "@/constants/theme";
+
+export function useThemeColors() {
+  const colorScheme = useColorScheme();
+  
+  // Fallback to light mode if color scheme is null
+  return Colors[colorScheme ?? "light"];
+}
+```
+
+## When to Use
+
+<CardGroup cols={2}>
+  <Card title="Direct Scheme Access" icon="circle-half-stroke">
+    Use when you need the raw color scheme value to make decisions about which theme to apply or which assets to load.
+  </Card>
+  
+  <Card title="Custom Theme Logic" icon="wand-magic-sparkles">
+    Use when building custom theme systems that need to respect the system color scheme but may include additional user preferences.
+  </Card>
+  
+  <Card title="Analytics & Tracking" icon="chart-line">
+    Use to track which color scheme users prefer or to segment analytics data by theme preference.
+  </Card>
+  
+  <Card title="Platform-Specific Behavior" icon="mobile-screen">
+    Use when you need platform-specific theme handling, especially for web apps that require hydration-safe color scheme detection.
+  </Card>
+</CardGroup>
+
+<Warning>
+  On web, the color scheme value may change after initial render due to hydration. If you're using this for critical rendering decisions, ensure your component can handle the transition from the default `"light"` value to the actual system preference.
+</Warning>
+
+## Best Practices
+
+<AccordionGroup>
+  <Accordion title="Always Provide a Fallback">
+    Since `useColorScheme` can return `null`, always provide a fallback value:
+    
+    ```tsx
+    const colorScheme = useColorScheme();
+    const safeScheme = colorScheme ?? "light"; // Fallback to light mode
+    ```
+  </Accordion>
+  
+  <Accordion title="Use useTheme for Styling">
+    For most styling use cases, prefer the `useTheme` hook which provides ready-to-use color tokens:
+    
+    ```tsx
+    // Prefer this
+    const { theme, isDark } = useTheme();
+    
+    // Over this
+    const colorScheme = useColorScheme();
+    const theme = Colors[colorScheme ?? "light"];
+    ```
+  </Accordion>
+  
+  <Accordion title="Consider Web Hydration">
+    On web platforms, be aware that the value changes after hydration. Avoid flashing content by:
+    - Using CSS to hide critical themed content until hydration
+    - Accepting the brief transition from light to dark mode
+    - Using the `"light"` default as your primary design
+  </Accordion>
+</AccordionGroup>
+
+## Related Hooks
+
+<CardGroup cols={2}>
+  <Card title="useTheme" icon="palette" href="/api/hooks/use-theme">
+    Get theme colors and dark mode state (recommended for most use cases)
+  </Card>
+  
+  <Card title="useScreenOptions" icon="window" href="/api/hooks/use-screen-options">
+    Apply theme-aware navigation options to screens
+  </Card>
+</CardGroup>

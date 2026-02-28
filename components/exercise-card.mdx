@@ -1,0 +1,500 @@
+---
+title: ExerciseCard Component
+description: Displays exercise information with tier badges, target metrics, and progress tracking
+---
+
+# ExerciseCard Component
+
+The `ExerciseCard` component is a specialized card that displays workout exercise information including tier classification, weight, reps, sets, and optional logged data for progress tracking. It features spring animations on press and automatic formatting for special values like bodyweight (BW) and max reps (AMRAP).
+
+## Import
+
+```tsx
+import { ExerciseCard } from "@/components/ExerciseCard";
+import { TargetExercise } from "@/types/workout";
+```
+
+## Basic Usage
+
+<CodeGroup>
+```tsx Simple Exercise
+import { ExerciseCard } from "@/components/ExerciseCard";
+
+function WorkoutList() {
+  const exercise: TargetExercise = {
+    tier: "T1",
+    exercise: "Bench Press",
+    weight: 185,
+    reps: 5,
+    sets: 5
+  };
+  
+  return (
+    <ExerciseCard 
+      exercise={exercise}
+      onPress={() => console.log("Exercise pressed")}
+    />
+  );
+}
+```
+
+```tsx With Progress Tracking
+import { ExerciseCard } from "@/components/ExerciseCard";
+
+function WorkoutList() {
+  const exercise: TargetExercise = {
+    tier: "T2",
+    exercise: "Squat",
+    weight: 225,
+    reps: 8,
+    sets: 3
+  };
+  
+  const logged = {
+    weight: 225,
+    reps: 8,
+    completedSets: 2
+  };
+  
+  return (
+    <ExerciseCard 
+      exercise={exercise}
+      loggedData={logged}
+      onPress={() => console.log("View details")}
+    />
+  );
+}
+```
+
+```tsx Bodyweight Exercise
+import { ExerciseCard } from "@/components/ExerciseCard";
+
+function WorkoutList() {
+  const exercise: TargetExercise = {
+    tier: "T3a",
+    exercise: "Pull Ups",
+    weight: "BW",
+    reps: 8,
+    sets: 3
+  };
+  
+  return <ExerciseCard exercise={exercise} />;
+}
+```
+
+```tsx AMRAP Sets
+import { ExerciseCard } from "@/components/ExerciseCard";
+
+function WorkoutList() {
+  const exercise: TargetExercise = {
+    tier: "T1",
+    exercise: "Deadlift",
+    weight: 315,
+    reps: "Max",
+    sets: "3+"
+  };
+  
+  const logged = {
+    weight: 315,
+    reps: 12,
+    completedSets: 4
+  };
+  
+  return (
+    <ExerciseCard 
+      exercise={exercise}
+      loggedData={logged}
+    />
+  );
+}
+```
+</CodeGroup>
+
+## Props
+
+<ParamField path="exercise" type="TargetExercise" required>
+  The exercise data object containing:
+  - `tier`: Exercise tier ("T1" | "T2" | "T3a" | "T3b")
+  - `exercise`: Exercise name (e.g., "Bench Press")
+  - `weight`: Target weight (number or "BW" for bodyweight)
+  - `reps`: Target reps (number or "Max" for AMRAP)
+  - `sets`: Target sets (number or string like "3+" for AMRAP sets)
+</ParamField>
+
+<ParamField path="onPress" type="() => void" optional>
+  Callback function invoked when the card is pressed
+</ParamField>
+
+<ParamField path="loggedData" type="object" optional>
+  Optional logged workout data for progress tracking:
+  - `weight?: number | string` - Logged weight
+  - `reps?: number | string` - Logged reps
+  - `completedSets?: number` - Number of sets completed
+</ParamField>
+
+## TargetExercise Type
+
+```tsx
+export type Tier = "T1" | "T2" | "T3a" | "T3b";
+
+export interface TargetExercise {
+  tier: Tier;
+  exercise: string;
+  weight: number | string;
+  reps: number | string;
+  sets: number | string;
+}
+```
+
+## Visual Breakdown
+
+The ExerciseCard has four main sections:
+
+```
+┌─────────────────────────────────────┐
+│ [T1 Badge]           [Progress 2/5] │  <- Header
+├─────────────────────────────────────┤
+│ Bench Press                         │  <- Exercise Name
+├─────────────────────────────────────┤
+│ Weight    Reps        Sets          │  <- Detail Labels
+│ 185 lbs   5           5             │  <- Detail Values
+└─────────────────────────────────────┘
+```
+
+### 1. Header Section
+- **TierBadge**: Shows exercise tier with color coding
+- **Progress Badge**: Displays completed/total sets (only when loggedData provided)
+
+### 2. Exercise Name
+- Large heading (h3) with exercise name
+- Uses ThemedText for consistent styling
+
+### 3. Details Row
+- Three columns: Weight, Reps, Sets
+- Labels in secondary text color
+- Values in h4 heading size
+
+## Formatting Helpers
+
+The component includes built-in formatters for special values:
+
+### Weight Formatting
+
+```tsx
+const formatWeight = (weight: number | string) => {
+  if (weight === "BW") return "BW";
+  return `${weight} lbs`;
+};
+```
+
+**Examples:**
+- `185` → "185 lbs"
+- `"BW"` → "BW"
+
+### Reps Formatting
+
+```tsx
+const formatReps = (reps: number | string) => {
+  if (reps === "Max") return "AMRAP";
+  return `${reps}`;
+};
+```
+
+**Examples:**
+- `5` → "5"
+- `"Max"` → "AMRAP" (As Many Reps As Possible)
+
+### Sets Formatting
+
+```tsx
+const formatSets = (sets: number | string) => {
+  const setsStr = String(sets);
+  if (setsStr.includes("+")) {
+    return setsStr.replace("+", "+ AMRAP");
+  }
+  return setsStr;
+};
+```
+
+**Examples:**
+- `3` → "3"
+- `"3+"` → "3+ AMRAP"
+
+## Progress Tracking
+
+When `loggedData` is provided, the card displays a progress badge:
+
+### Progress Badge Colors
+
+<Tabs>
+  <Tab title="Complete">
+    **Background**: `theme.success` (green)
+    
+    Shown when `completedSets === totalSets`
+    
+    ```tsx
+    <ExerciseCard 
+      exercise={exercise}
+      loggedData={{
+        completedSets: 5  // totalSets is also 5
+      }}
+    />
+    ```
+  </Tab>
+  <Tab title="In Progress">
+    **Background**: `theme.secondary`
+    
+    Shown when `completedSets < totalSets`
+    
+    ```tsx
+    <ExerciseCard 
+      exercise={exercise}
+      loggedData={{
+        completedSets: 3  // totalSets is 5
+      }}
+    />
+    ```
+  </Tab>
+  <Tab title="No Progress">
+    No badge shown
+    
+    When `loggedData` is not provided or `completedSets` is undefined
+    
+    ```tsx
+    <ExerciseCard exercise={exercise} />
+    ```
+  </Tab>
+</Tabs>
+
+### Total Sets Calculation
+
+For AMRAP-style sets (e.g., "3+"), the component extracts the base number:
+
+```tsx
+const totalSets =
+  typeof exercise.sets === "number"
+    ? exercise.sets
+    : parseInt(String(exercise.sets).replace("+", ""), 10);
+```
+
+**Examples:**
+- `5` → 5 sets
+- `"3+"` → 3 sets (base value)
+
+## Animation Behavior
+
+The ExerciseCard uses spring-based press animations:
+
+```tsx
+const handlePressIn = () => {
+  scale.value = withSpring(0.98, { damping: 15 });
+};
+
+const handlePressOut = () => {
+  scale.value = withSpring(1, { damping: 15 });
+};
+```
+
+- **Press In**: Scales to 0.98
+- **Press Out**: Springs back to 1.0
+- **Duration**: ~150-200ms with natural spring physics
+
+## Styling
+
+### Default Styles
+
+```tsx
+const styles = StyleSheet.create({
+  card: {
+    padding: Spacing.lg,
+    borderRadius: BorderRadius.sm,
+    marginBottom: Spacing.md,
+  },
+  header: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: Spacing.sm,
+  },
+  exerciseName: {
+    marginBottom: Spacing.md,
+  },
+  details: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+  },
+  detailItem: {
+    flex: 1,
+  },
+});
+```
+
+### Theme Colors
+
+- **Card Background**: `theme.backgroundDefault`
+- **Exercise Name**: `theme.text` (via ThemedText)
+- **Detail Labels**: `theme.textSecondary`
+- **Detail Values**: `theme.text` (via ThemedText h4)
+- **Progress Text**: `#FFFFFF` (white on colored background)
+
+## Tier System
+
+Exercises are classified into tiers using the TierBadge component:
+
+<CardGroup cols={2}>
+  <Card title="T1 - Main Lifts">
+    Primary compound movements (Bench, Squat, Deadlift, OHP)
+    
+    Heavy weight, low reps (1-5)
+  </Card>
+  <Card title="T2 - Secondary Lifts">
+    Supporting compound movements
+    
+    Moderate weight, medium reps (5-10)
+  </Card>
+  <Card title="T3a - Primary Accessories">
+    Important isolation work
+    
+    Moderate weight, higher reps (8-12)
+  </Card>
+  <Card title="T3b - Secondary Accessories">
+    Additional isolation exercises
+    
+    Light weight, high reps (12-15+)
+  </Card>
+</CardGroup>
+
+## Complete Example
+
+Here's a complete example showing all features:
+
+```tsx
+import React from "react";
+import { ScrollView } from "react-native";
+import { ExerciseCard } from "@/components/ExerciseCard";
+import { TargetExercise } from "@/types/workout";
+
+function WorkoutDayScreen() {
+  const exercises: TargetExercise[] = [
+    {
+      tier: "T1",
+      exercise: "Bench Press",
+      weight: 185,
+      reps: 5,
+      sets: 5
+    },
+    {
+      tier: "T2",
+      exercise: "Incline Bench Press",
+      weight: 155,
+      reps: 8,
+      sets: 3
+    },
+    {
+      tier: "T3a",
+      exercise: "Dumbbell Flyes",
+      weight: 40,
+      reps: 12,
+      sets: 3
+    },
+    {
+      tier: "T3b",
+      exercise: "Pull Ups",
+      weight: "BW",
+      reps: "Max",
+      sets: "3+"
+    }
+  ];
+
+  const loggedData = {
+    0: { completedSets: 5 },     // Bench complete
+    1: { completedSets: 2 },     // Incline in progress
+    2: { completedSets: 0 },     // Flyes not started
+    // Pull ups not logged yet
+  };
+
+  return (
+    <ScrollView style={{ padding: 16 }}>
+      {exercises.map((exercise, index) => (
+        <ExerciseCard
+          key={index}
+          exercise={exercise}
+          loggedData={loggedData[index]}
+          onPress={() => console.log(`Edit ${exercise.exercise}`)}
+        />
+      ))}
+    </ScrollView>
+  );
+}
+```
+
+## Best Practices
+
+<AccordionGroup>
+  <Accordion title="Use onPress for navigation">
+    Make cards pressable to navigate to exercise detail screens:
+    
+    ```tsx
+    <ExerciseCard 
+      exercise={exercise}
+      onPress={() => navigation.navigate('ExerciseDetail', { 
+        exerciseId: exercise.id 
+      })}
+    />
+    ```
+  </Accordion>
+  
+  <Accordion title="Update logged data in real-time">
+    Keep loggedData in sync with user actions:
+    
+    ```tsx
+    const [loggedData, setLoggedData] = useState({});
+    
+    const handleSetComplete = (exerciseIndex: number) => {
+      setLoggedData(prev => ({
+        ...prev,
+        [exerciseIndex]: {
+          ...prev[exerciseIndex],
+          completedSets: (prev[exerciseIndex]?.completedSets || 0) + 1
+        }
+      }));
+    };
+    ```
+  </Accordion>
+  
+  <Accordion title="Handle edge cases">
+    Consider special values in your data:
+    
+    ```tsx
+    // Bodyweight exercises
+    { weight: "BW", reps: 10, sets: 3 }
+    
+    // AMRAP sets
+    { weight: 225, reps: "Max", sets: "5+" }
+    
+    // Mixed format
+    { weight: 135, reps: 5, sets: "3+" }
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Accessibility
+
+- Animated press feedback provides clear visual response
+- High contrast tier badges for quick identification
+- Progress badge uses color + text for accessibility
+- Adequate touch target size (card padding + content)
+
+## Dependencies
+
+- `ThemedText` - For all text rendering
+- `TierBadge` - For tier classification display
+- `useTheme` - For theme integration
+- `react-native-reanimated` - For press animations
+- `@/types/workout` - For TypeScript interfaces
+
+## Source Code
+
+Location: `client/components/ExerciseCard.tsx:1-166`
+
+The ExerciseCard is a self-contained component that handles its own animations and formatting logic while remaining flexible through props.

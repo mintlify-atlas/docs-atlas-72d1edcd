@@ -1,0 +1,235 @@
+---
+title: useTheme
+description: Access the current theme colors and dark mode state throughout your app
+---
+
+The `useTheme` hook provides a simple way to access the current theme colors based on the user's color scheme preference (light or dark mode). It returns the appropriate color palette and a boolean indicating whether dark mode is active.
+
+## Usage
+
+```tsx
+import { useTheme } from "@/hooks/useTheme";
+
+export function MyComponent() {
+  const { theme, isDark } = useTheme();
+
+  return (
+    <View style={{ backgroundColor: theme.backgroundRoot }}>
+      <Text style={{ color: theme.text }}>
+        {isDark ? "Dark mode is enabled" : "Light mode is enabled"}
+      </Text>
+    </View>
+  );
+}
+```
+
+## Return Value
+
+The hook returns an object with two properties:
+
+<ResponseField name="theme" type="object" required>
+  The current theme color palette based on the active color scheme. Contains all color tokens defined in `Colors` constant.
+  
+  <Expandable title="Theme Properties">
+    <ResponseField name="text" type="string">
+      Primary text color (`#212121` in light mode, `#FFFFFF` in dark mode)
+    </ResponseField>
+    
+    <ResponseField name="textSecondary" type="string">
+      Secondary text color for less prominent text
+    </ResponseField>
+    
+    <ResponseField name="buttonText" type="string">
+      Text color for buttons
+    </ResponseField>
+    
+    <ResponseField name="tabIconDefault" type="string">
+      Default color for tab bar icons
+    </ResponseField>
+    
+    <ResponseField name="tabIconSelected" type="string">
+      Color for selected tab bar icons
+    </ResponseField>
+    
+    <ResponseField name="link" type="string">
+      Color for links and clickable text
+    </ResponseField>
+    
+    <ResponseField name="primary" type="string">
+      Primary brand color (`#1E88E5` in light mode, `#0A84FF` in dark mode)
+    </ResponseField>
+    
+    <ResponseField name="secondary" type="string">
+      Secondary brand color
+    </ResponseField>
+    
+    <ResponseField name="success" type="string">
+      Success state color (green)
+    </ResponseField>
+    
+    <ResponseField name="disabled" type="string">
+      Color for disabled states
+    </ResponseField>
+    
+    <ResponseField name="backgroundRoot" type="string">
+      Root background color for screens
+    </ResponseField>
+    
+    <ResponseField name="backgroundDefault" type="string">
+      Default background color for components
+    </ResponseField>
+    
+    <ResponseField name="backgroundSecondary" type="string">
+      Secondary background color for layered components
+    </ResponseField>
+    
+    <ResponseField name="backgroundTertiary" type="string">
+      Tertiary background color for additional layering
+    </ResponseField>
+    
+    <ResponseField name="border" type="string">
+      Border color for dividers and outlines
+    </ResponseField>
+    
+    <ResponseField name="t1" type="string">
+      Training type 1 color
+    </ResponseField>
+    
+    <ResponseField name="t2" type="string">
+      Training type 2 color
+    </ResponseField>
+    
+    <ResponseField name="t3a" type="string">
+      Training type 3a color
+    </ResponseField>
+    
+    <ResponseField name="t3b" type="string">
+      Training type 3b color
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+<ResponseField name="isDark" type="boolean" required>
+  Boolean indicating whether dark mode is currently active. `true` when the user has dark mode enabled, `false` otherwise.
+</ResponseField>
+
+## Examples
+
+### Basic Styling
+
+```tsx
+import { View, Text } from "react-native";
+import { useTheme } from "@/hooks/useTheme";
+
+export function WorkoutCard() {
+  const { theme } = useTheme();
+
+  return (
+    <View
+      style={{
+        backgroundColor: theme.backgroundDefault,
+        borderColor: theme.border,
+        borderWidth: 1,
+        padding: 16,
+        borderRadius: 12,
+      }}
+    >
+      <Text style={{ color: theme.text, fontSize: 18, fontWeight: "600" }}>
+        Morning Workout
+      </Text>
+      <Text style={{ color: theme.textSecondary, fontSize: 14 }}>
+        45 minutes
+      </Text>
+    </View>
+  );
+}
+```
+
+### Conditional Rendering Based on Theme
+
+```tsx
+import { View, Image } from "react-native";
+import { useTheme } from "@/hooks/useTheme";
+
+export function LogoHeader() {
+  const { isDark } = useTheme();
+
+  return (
+    <View>
+      <Image
+        source={isDark ? require("./logo-dark.png") : require("./logo-light.png")}
+        style={{ width: 120, height: 40 }}
+      />
+    </View>
+  );
+}
+```
+
+### Using Training Type Colors
+
+```tsx
+import { View, Text } from "react-native";
+import { useTheme } from "@/hooks/useTheme";
+
+type TrainingType = "t1" | "t2" | "t3a" | "t3b";
+
+interface TrainingBadgeProps {
+  type: TrainingType;
+  label: string;
+}
+
+export function TrainingBadge({ type, label }: TrainingBadgeProps) {
+  const { theme } = useTheme();
+
+  return (
+    <View
+      style={{
+        backgroundColor: theme[type],
+        paddingHorizontal: 12,
+        paddingVertical: 6,
+        borderRadius: 16,
+      }}
+    >
+      <Text style={{ color: theme.buttonText, fontSize: 12, fontWeight: "600" }}>
+        {label}
+      </Text>
+    </View>
+  );
+}
+```
+
+## When to Use
+
+<CardGroup cols={2}>
+  <Card title="Styling Components" icon="palette">
+    Use `useTheme` to apply theme-aware colors to your components' styles, ensuring they adapt to the user's color scheme preference.
+  </Card>
+  
+  <Card title="Conditional Logic" icon="code-branch">
+    Use the `isDark` value for conditional rendering when you need different behavior or assets in light vs. dark mode.
+  </Card>
+  
+  <Card title="Dynamic Backgrounds" icon="fill">
+    Use theme colors for backgrounds, borders, and other visual elements that should match the current theme.
+  </Card>
+  
+  <Card title="Accessible Colors" icon="eye">
+    Leverage the pre-defined color palette that ensures proper contrast ratios for text readability in both modes.
+  </Card>
+</CardGroup>
+
+<Note>
+  The `useTheme` hook internally uses `useColorScheme` to detect the current color scheme and returns the corresponding color palette from the `Colors` constant.
+</Note>
+
+## Related Hooks
+
+<CardGroup cols={2}>
+  <Card title="useColorScheme" icon="circle-half-stroke" href="/api/hooks/use-color-scheme">
+    Get the raw color scheme value ("light" or "dark")
+  </Card>
+  
+  <Card title="useScreenOptions" icon="window" href="/api/hooks/use-screen-options">
+    Apply theme-aware navigation options to screens
+  </Card>
+</CardGroup>

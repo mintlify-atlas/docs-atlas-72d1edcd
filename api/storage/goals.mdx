@@ -1,0 +1,459 @@
+---
+title: Goal Storage
+description: Functions for setting and tracking target weights for exercises throughout your training program
+---
+
+## Overview
+
+Goal storage functions manage user-defined target weights for exercises. Goals are stored as a key-value mapping where exercise names are keys and target weights are values. This allows users to set specific weight targets they want to achieve by the end of the program.
+
+## Storage Key
+
+<ResponseField name="@rippler/goal_weights" type="string">
+  Stores a JSON-serialized object mapping exercise names to goal weights
+</ResponseField>
+
+## Data Structure
+
+Goals are stored as a simple object:
+
+```typescript
+{
+  "Squat": 315,
+  "Bench Press": 225,
+  "Deadlift": 405,
+  "Overhead Press": 135
+}
+```
+
+## Functions
+
+### getGoalWeights
+
+Retrieves all goal weights from storage as an object mapping exercise names to weights.
+
+```typescript
+async function getGoalWeights(): Promise<Record<string, number>>
+```
+
+<ResponseField name="return" type="Record<string, number>">
+  Object mapping exercise names to goal weights, or empty object if none exist
+</ResponseField>
+
+**Example**
+
+```typescript
+import { getGoalWeights } from '@/lib/storage';
+
+const goals = await getGoalWeights();
+console.log(goals);
+// {
+//   "Squat": 315,
+//   "Bench Press": 225,
+//   "Deadlift": 405
+// }
+
+// Iterate over goals
+Object.entries(goals).forEach(([exercise, weight]) => {
+  console.log(`Goal for ${exercise}: ${weight} lbs`);
+});
+```
+
+**Source Code Reference**
+
+See implementation at `lib/storage.ts:192-203`
+
+---
+
+### saveGoalWeights
+
+Saves the complete goal weights object to storage, overwriting existing data.
+
+```typescript
+async function saveGoalWeights(
+  goalWeights: Record<string, number>
+): Promise<void>
+```
+
+<ParamField path="goalWeights" type="Record<string, number>" required>
+  Object mapping exercise names to target weights
+</ParamField>
+
+<Warning>
+  This function overwrites all existing goals. Load current goals with `getGoalWeights()` first if you need to preserve existing data.
+</Warning>
+
+**Example**
+
+```typescript
+import { getGoalWeights, saveGoalWeights } from '@/lib/storage';
+
+// Load existing goals
+const goals = await getGoalWeights();
+
+// Add or modify goals
+goals['Front Squat'] = 275;
+goals['Squat'] = 335; // Update existing
+
+// Save back to storage
+await saveGoalWeights(goals);
+```
+
+**Source Code Reference**
+
+See implementation at `lib/storage.ts:205-213`
+
+---
+
+### getGoalWeight
+
+Retrieves the goal weight for a specific exercise by name.
+
+```typescript
+async function getGoalWeight(exerciseName: string): Promise<number | null>
+```
+
+<ParamField path="exerciseName" type="string" required>
+  The exact name of the exercise (case-sensitive)
+</ParamField>
+
+<ResponseField name="return" type="number | null">
+  The goal weight if set, or null if no goal exists for that exercise
+</ResponseField>
+
+<Info>
+  Exercise names must match exactly. "Squat" and "squat" are treated as different exercises.
+</Info>
+
+**Example**
+
+```typescript
+import { getGoalWeight } from '@/lib/storage';
+
+const squatGoal = await getGoalWeight('Squat');
+
+if (squatGoal) {
+  console.log(`Your squat goal is ${squatGoal} lbs`);
+} else {
+  console.log('No goal set for Squat');
+}
+```
+
+**Source Code Reference**
+
+See implementation at `lib/storage.ts:215-218`
+
+---
+
+### setGoalWeight
+
+Sets or updates the goal weight for a specific exercise.
+
+```typescript
+async function setGoalWeight(
+  exerciseName: string,
+  weight: number
+): Promise<void>
+```
+
+<ParamField path="exerciseName" type="string" required>
+  The name of the exercise
+</ParamField>
+
+<ParamField path="weight" type="number" required>
+  The target weight to achieve
+</ParamField>
+
+<Tip>
+  This function loads existing goals, updates the specific exercise, and saves back to storage automatically.
+</Tip>
+
+**Example**
+
+```typescript
+import { setGoalWeight } from '@/lib/storage';
+
+// Set a new goal
+await setGoalWeight('Squat', 315);
+
+// Update an existing goal
+await setGoalWeight('Squat', 335);
+```
+
+**Source Code Reference**
+
+See implementation at `lib/storage.ts:220-227`
+
+---
+
+## Common Patterns
+
+### Building a Goal Setting Interface
+
+```typescript
+import { getExercises } from '@/lib/storage';
+import { getGoalWeight, setGoalWeight } from '@/lib/storage';
+import { useState, useEffect } from 'react';
+
+function GoalSetter() {
+  const [exercises, setExercises] = useState<Exercise[]>([]);
+  const [goals, setGoals] = useState<Record<string, number>>({});
+
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  async function loadData() {
+    const exerciseList = await getExercises();
+    setExercises(exerciseList);
+
+    // Load goal for each exercise
+    const goalData: Record<string, number> = {};
+    for (const ex of exerciseList) {
+      const goal = await getGoalWeight(ex.name);
+      if (goal) {
+        goalData[ex.name] = goal;
+      }
+    }
+    setGoals(goalData);
+  }
+
+  async function updateGoal(exerciseName: string, weight: number) {
+    await setGoalWeight(exerciseName, weight);
+    setGoals({ ...goals, [exerciseName]: weight });
+  }
+
+  return (
+    <View>
+      {exercises.map((ex) => (
+        <View key={ex.id}>
+          <Text>{ex.name}</Text>
+          <TextInput
+            keyboardType="numeric"
+            value={goals[ex.name]?.toString() || ''}
+            onChangeText={(val) => updateGoal(ex.name, Number(val))}
+            placeholder="Goal weight"
+          />
+        </View>
+      ))}
+    </View>
+  );
+}
+```
+
+### Calculating Progress Toward Goals
+
+```typescript
+import { getGoalWeight } from '@/lib/storage';
+import { getLoggedWorkouts } from '@/lib/storage';
+
+async function calculateProgress(exerciseName: string) {
+  const goal = await getGoalWeight(exerciseName);
+  if (!goal) {
+    return null;
+  }
+
+  // Find highest weight logged for this exercise
+  const workouts = await getLoggedWorkouts();
+  let maxWeight = 0;
+
+  workouts.forEach((workout) => {
+    workout.exercises.forEach((ex) => {
+      if (ex.exercise === exerciseName) {
+        ex.sets.forEach((set) => {
+          const weight = typeof set.weight === 'number' ? set.weight : parseFloat(set.weight);
+          if (weight > maxWeight) {
+            maxWeight = weight;
+          }
+        });
+      }
+    });
+  });
+
+  const progress = (maxWeight / goal) * 100;
+  return {
+    current: maxWeight,
+    goal,
+    progress: Math.round(progress),
+    remaining: goal - maxWeight
+  };
+}
+
+// Usage
+const squatProgress = await calculateProgress('Squat');
+if (squatProgress) {
+  console.log(`Current: ${squatProgress.current} lbs`);
+  console.log(`Goal: ${squatProgress.goal} lbs`);
+  console.log(`Progress: ${squatProgress.progress}%`);
+  console.log(`Remaining: ${squatProgress.remaining} lbs to go`);
+}
+```
+
+### Bulk Goal Import
+
+```typescript
+import { saveGoalWeights } from '@/lib/storage';
+
+async function importGoalsFromTemplate(template: 'beginner' | 'intermediate' | 'advanced') {
+  const templates = {
+    beginner: {
+      'Squat': 225,
+      'Bench Press': 185,
+      'Deadlift': 315,
+      'Overhead Press': 115
+    },
+    intermediate: {
+      'Squat': 315,
+      'Bench Press': 225,
+      'Deadlift': 405,
+      'Overhead Press': 155
+    },
+    advanced: {
+      'Squat': 405,
+      'Bench Press': 315,
+      'Deadlift': 495,
+      'Overhead Press': 205
+    }
+  };
+
+  await saveGoalWeights(templates[template]);
+}
+
+// Usage
+await importGoalsFromTemplate('intermediate');
+```
+
+### Goal Tracking Dashboard
+
+```typescript
+import { getGoalWeights } from '@/lib/storage';
+import { getLoggedWorkouts } from '@/lib/storage';
+
+async function getGoalsDashboard() {
+  const goals = await getGoalWeights();
+  const workouts = await getLoggedWorkouts();
+
+  // Calculate max weight for each exercise
+  const maxWeights: Record<string, number> = {};
+  
+  workouts.forEach((workout) => {
+    workout.exercises.forEach((ex) => {
+      ex.sets.forEach((set) => {
+        const weight = typeof set.weight === 'number' ? set.weight : parseFloat(set.weight);
+        if (!maxWeights[ex.exercise] || weight > maxWeights[ex.exercise]) {
+          maxWeights[ex.exercise] = weight;
+        }
+      });
+    });
+  });
+
+  // Build dashboard data
+  return Object.entries(goals).map(([exercise, goal]) => ({
+    exercise,
+    goal,
+    current: maxWeights[exercise] || 0,
+    progress: maxWeights[exercise] ? Math.round((maxWeights[exercise] / goal) * 100) : 0,
+    achieved: (maxWeights[exercise] || 0) >= goal
+  }));
+}
+
+// Usage
+const dashboard = await getGoalsDashboard();
+dashboard.forEach((item) => {
+  const status = item.achieved ? '✓ Achieved!' : `${item.progress}%`;
+  console.log(`${item.exercise}: ${item.current}/${item.goal} lbs (${status})`);
+});
+```
+
+### Deleting a Goal
+
+```typescript
+import { getGoalWeights, saveGoalWeights } from '@/lib/storage';
+
+async function deleteGoal(exerciseName: string) {
+  const goals = await getGoalWeights();
+  delete goals[exerciseName];
+  await saveGoalWeights(goals);
+}
+
+// Usage
+await deleteGoal('Squat');
+```
+
+### Goal Validation
+
+```typescript
+import { setGoalWeight, getGoalWeight } from '@/lib/storage';
+
+async function setValidatedGoal(exerciseName: string, weight: number) {
+  // Validation rules
+  if (weight <= 0) {
+    throw new Error('Goal weight must be positive');
+  }
+
+  if (weight > 1000) {
+    throw new Error('Goal weight seems unrealistic');
+  }
+
+  // Check if goal is lower than current
+  const current = await getCurrentMaxWeight(exerciseName);
+  if (current && weight < current) {
+    console.warn(`Warning: Goal (${weight}) is lower than current max (${current})`);
+  }
+
+  await setGoalWeight(exerciseName, weight);
+}
+```
+
+## Best Practices
+
+<AccordionGroup>
+  <Accordion title="Use consistent exercise names">
+    Goal weights are keyed by exercise name. Ensure exercise names match exactly between your exercise library and goal storage.
+    
+    ```typescript
+    // Good - consistent naming
+    await setGoalWeight('Squat', 315);
+    const goal = await getGoalWeight('Squat'); // Found
+    
+    // Bad - inconsistent naming
+    await setGoalWeight('Squat', 315);
+    const goal = await getGoalWeight('squat'); // null
+    ```
+  </Accordion>
+
+  <Accordion title="Set realistic, progressive goals">
+    Goals should be challenging but achievable within the 16-week program timeline.
+    
+    ```typescript
+    // Calculate recommended goal based on current max
+    const currentMax = 225;
+    const recommendedGoal = currentMax * 1.2; // 20% increase
+    await setGoalWeight('Squat', recommendedGoal);
+    ```
+  </Accordion>
+
+  <Accordion title="Track goal progress regularly">
+    Compare goal weights against recent workout performance to stay motivated.
+    
+    ```typescript
+    // Weekly progress check
+    async function weeklyGoalCheck() {
+      const dashboard = await getGoalsDashboard();
+      const onTrack = dashboard.filter(g => g.progress >= 50);
+      console.log(`${onTrack.length} of ${dashboard.length} goals on track`);
+    }
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Related Functions
+
+<CardGroup cols={2}>
+  <Card title="getExercises" icon="dumbbell" href="/api/storage/exercises#getexercises">
+    Load exercises to set goals for
+  </Card>
+  <Card title="getLoggedWorkouts" icon="clipboard-list" href="/api/storage/workouts#getloggedworkouts">
+    Track progress toward goals
+  </Card>
+</CardGroup>

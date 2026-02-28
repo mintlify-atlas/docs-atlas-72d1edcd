@@ -1,0 +1,482 @@
+---
+title: Testing
+description: Testing approach and quality assurance practices for the Rippler workout tracker
+---
+
+## Current Testing Status
+
+The Rippler project currently does not have a formal automated testing suite. However, the codebase includes several quality assurance practices and tools to ensure code reliability.
+
+<Warning>
+  No test files (`.test.ts`, `.test.tsx`, `.spec.ts`, `.spec.tsx`) were found in the codebase. Setting up automated testing is recommended for production applications.
+</Warning>
+
+## Quality Assurance Tools
+
+While automated tests are not yet implemented, the project uses several tools to maintain code quality:
+
+### TypeScript Type Checking
+
+The project uses strict TypeScript configuration to catch errors at compile time:
+
+```bash
+npm run check:types
+```
+
+<Accordion title="TypeScript Configuration">
+```json tsconfig.json
+{
+  "compilerOptions": {
+    "strict": true,
+    "esModuleInterop": true,
+    "paths": {
+      "@/*": ["./client/*"],
+      "@shared/*": ["./shared/*"]
+    },
+    "types": ["node"]
+  },
+  "exclude": ["node_modules", "build", "dist", "**/*.test.ts"]
+}
+```
+</Accordion>
+
+**Benefits:**
+- Catches type errors before runtime
+- Ensures type safety across client and server
+- Validates prop types and function signatures
+- Prevents common JavaScript pitfalls
+
+### ESLint Code Analysis
+
+ESLint checks for code quality issues and potential bugs:
+
+```bash
+npm run lint
+```
+
+**Configuration:**
+- Expo ESLint config
+- Prettier integration
+- React best practices
+- TypeScript-specific rules
+
+**Common checks:**
+- Unused variables
+- Missing dependencies in hooks
+- Improper React patterns
+- Code style violations
+
+### Prettier Code Formatting
+
+Ensures consistent code style across the project:
+
+```bash
+npm run format
+```
+
+**Enforces:**
+- Consistent indentation
+- Proper line breaks
+- Quote style
+- Semicolon usage
+- Trailing commas
+
+## Manual Testing Approach
+
+Currently, the Rippler app relies on manual testing during development:
+
+### Development Testing Workflow
+
+<Steps>
+  <Step title="Start development servers">
+    Run both the Expo client and backend server:
+    
+    ```bash
+    # Terminal 1
+    npm run expo:dev
+    
+    # Terminal 2
+    npm run server:dev
+    ```
+  </Step>
+
+  <Step title="Test on physical device or emulator">
+    Open the Expo Go app on your device and scan the QR code, or use an emulator:
+    
+    - iOS Simulator (macOS only)
+    - Android Emulator
+    - Physical device via Expo Go
+  </Step>
+
+  <Step title="Verify functionality">
+    Manually test:
+    
+    - Navigation between screens
+    - Workout tracking and data entry
+    - Goal setting and tracking
+    - Theme switching (light/dark mode)
+    - Data persistence
+  </Step>
+
+  <Step title="Check error handling">
+    Test error scenarios:
+    
+    - Network failures
+    - Invalid data input
+    - Edge cases
+    - Error boundary behavior
+  </Step>
+</Steps>
+
+### Error Boundary
+
+The app includes an `ErrorBoundary` component to catch runtime errors:
+
+```typescript client/App.tsx
+import { ErrorBoundary } from '@/components/ErrorBoundary';
+
+export default function App() {
+  return (
+    <ErrorBoundary>
+      {/* App content */}
+    </ErrorBoundary>
+  );
+}
+```
+
+**Features:**
+- Catches React component errors
+- Displays user-friendly error UI
+- Prevents app crashes
+- Logs errors for debugging
+
+## Recommended Testing Setup
+
+For a production-ready application, consider implementing these testing frameworks:
+
+### Unit Testing with Jest
+
+<Accordion title="Installation">
+```bash
+npm install --save-dev jest @types/jest ts-jest
+npm install --save-dev @testing-library/react-native @testing-library/jest-native
+```
+</Accordion>
+
+<Accordion title="Jest Configuration">
+```javascript jest.config.js
+module.exports = {
+  preset: 'jest-expo',
+  transformIgnorePatterns: [
+    'node_modules/(?!((jest-)?react-native|@react-native(-community)?)|expo(nent)?|@expo(nent)?/.*|@expo-google-fonts/.*|react-navigation|@react-navigation/.*|@unimodules/.*|unimodules|sentry-expo|native-base|react-native-svg)'
+  ],
+  setupFilesAfterEnv: ['@testing-library/jest-native/extend-expect'],
+  moduleNameMapper: {
+    '^@/(.*)$': '<rootDir>/client/$1',
+    '^@shared/(.*)$': '<rootDir>/shared/$1',
+  },
+};
+```
+</Accordion>
+
+**What to test:**
+- Component rendering
+- User interactions
+- State management
+- Custom hooks
+- Utility functions
+
+**Example test:**
+```typescript Button.test.tsx
+import { render, fireEvent } from '@testing-library/react-native';
+import { Button } from '@/components/Button';
+
+describe('Button', () => {
+  it('renders correctly', () => {
+    const { getByText } = render(<Button title="Press Me" />);
+    expect(getByText('Press Me')).toBeTruthy();
+  });
+
+  it('calls onPress when pressed', () => {
+    const onPress = jest.fn();
+    const { getByText } = render(
+      <Button title="Press Me" onPress={onPress} />
+    );
+    
+    fireEvent.press(getByText('Press Me'));
+    expect(onPress).toHaveBeenCalledTimes(1);
+  });
+});
+```
+
+### Integration Testing
+
+<Accordion title="Recommended Tools">
+- **Detox** - End-to-end testing for React Native
+- **Supertest** - HTTP assertion for API testing
+- **Playwright** - Web version testing
+</Accordion>
+
+**API testing example:**
+```typescript routes.test.ts
+import request from 'supertest';
+import app from './server';
+
+describe('API Routes', () => {
+  it('GET /api/workouts returns workout data', async () => {
+    const response = await request(app)
+      .get('/api/workouts')
+      .expect(200);
+    
+    expect(response.body).toHaveProperty('workouts');
+  });
+});
+```
+
+### Database Testing
+
+<Accordion title="Drizzle ORM Testing">
+```typescript
+import { db } from './storage';
+import { users } from '@shared/schema';
+
+describe('Database Operations', () => {
+  beforeEach(async () => {
+    // Clean up test data
+    await db.delete(users);
+  });
+
+  it('creates a new user', async () => {
+    const user = await db.insert(users).values({
+      username: 'testuser',
+      password: 'hashedpassword',
+    }).returning();
+    
+    expect(user).toHaveLength(1);
+    expect(user[0].username).toBe('testuser');
+  });
+});
+```
+</Accordion>
+
+**Best practices:**
+- Use a separate test database
+- Clean up after each test
+- Mock external dependencies
+- Test error cases
+
+## Pre-Commit Checks
+
+Implement quality checks before committing code:
+
+### Using Husky and lint-staged
+
+<Accordion title="Installation">
+```bash
+npm install --save-dev husky lint-staged
+npx husky install
+```
+</Accordion>
+
+<Accordion title="Configuration">
+```json package.json
+{
+  "lint-staged": {
+    "**/*.{js,ts,tsx}": [
+      "prettier --write",
+      "eslint --fix",
+      "tsc --noEmit"
+    ],
+    "**/*.{json,css}": [
+      "prettier --write"
+    ]
+  }
+}
+```
+</Accordion>
+
+**Pre-commit hook:**
+```bash .husky/pre-commit
+#!/bin/sh
+npx lint-staged
+npm run check:types
+```
+
+## Continuous Integration
+
+Recommended CI/CD pipeline checks:
+
+<Steps>
+  <Step title="Install dependencies">
+    ```bash
+    npm ci
+    ```
+  </Step>
+
+  <Step title="Run linters">
+    ```bash
+    npm run lint
+    npm run check:format
+    ```
+  </Step>
+
+  <Step title="Type checking">
+    ```bash
+    npm run check:types
+    ```
+  </Step>
+
+  <Step title="Run tests (when implemented)">
+    ```bash
+    npm test
+    ```
+  </Step>
+
+  <Step title="Build application">
+    ```bash
+    npm run expo:static:build
+    npm run server:build
+    ```
+  </Step>
+</Steps>
+
+### GitHub Actions Example
+
+<Accordion title=".github/workflows/ci.yml">
+```yaml
+name: CI
+
+on: [push, pull_request]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Lint code
+        run: npm run lint
+      
+      - name: Check formatting
+        run: npm run check:format
+      
+      - name: Type check
+        run: npm run check:types
+      
+      - name: Run tests
+        run: npm test
+```
+</Accordion>
+
+## Testing Best Practices
+
+When implementing tests, follow these guidelines:
+
+<CardGroup cols={2}>
+  <Card title="Test Pyramid" icon="triangle">
+    Maintain balance:
+    - Many unit tests
+    - Some integration tests
+    - Few end-to-end tests
+  </Card>
+  
+  <Card title="Arrange-Act-Assert" icon="list-check">
+    Structure tests:
+    - Arrange: Set up test data
+    - Act: Execute the code
+    - Assert: Verify results
+  </Card>
+  
+  <Card title="Test Isolation" icon="shield">
+    Each test should:
+    - Run independently
+    - Not depend on other tests
+    - Clean up after itself
+  </Card>
+  
+  <Card title="Meaningful Names" icon="tag">
+    Test names should:
+    - Describe what is tested
+    - Include expected behavior
+    - Be readable as documentation
+  </Card>
+</CardGroup>
+
+## Manual Testing Checklist
+
+Until automated tests are implemented, use this checklist:
+
+<AccordionGroup>
+  <Accordion title="Navigation Testing">
+    - [ ] All tab navigation works correctly
+    - [ ] Stack navigation maintains state
+    - [ ] Back button behavior is correct
+    - [ ] Deep linking works (if implemented)
+  </Accordion>
+
+  <Accordion title="Data Entry Testing">
+    - [ ] Workout data saves correctly
+    - [ ] Goals can be created and updated
+    - [ ] Exercise percentages calculate properly
+    - [ ] Invalid input is handled gracefully
+  </Accordion>
+
+  <Accordion title="Theme Testing">
+    - [ ] Light mode displays correctly
+    - [ ] Dark mode displays correctly
+    - [ ] Theme persists across app restarts
+    - [ ] All components respect theme
+  </Accordion>
+
+  <Accordion title="Error Handling">
+    - [ ] Network errors show user-friendly messages
+    - [ ] App doesn't crash on errors
+    - [ ] Error boundary catches component errors
+    - [ ] Invalid API responses are handled
+  </Accordion>
+
+  <Accordion title="Performance Testing">
+    - [ ] App loads quickly
+    - [ ] Scrolling is smooth
+    - [ ] No memory leaks
+    - [ ] Animations are fluid
+  </Accordion>
+
+  <Accordion title="Cross-Platform Testing">
+    - [ ] Works on iOS
+    - [ ] Works on Android
+    - [ ] Works on web (if applicable)
+    - [ ] Consistent behavior across platforms
+  </Accordion>
+</AccordionGroup>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Setup Guide" icon="rocket" href="/development/setup">
+    Set up your development environment
+  </Card>
+  <Card title="Scripts Reference" icon="terminal" href="/development/scripts">
+    Learn about available npm scripts
+  </Card>
+  <Card title="Project Structure" icon="folder-tree" href="/development/project-structure">
+    Understand the codebase layout
+  </Card>
+  <Card title="Architecture" icon="code-pull-request" href="/architecture/overview">
+    Learn about the architecture
+  </Card>
+</CardGroup>
+
+<Note>
+  This documentation will be updated as testing infrastructure is implemented. Consider setting up Jest and React Native Testing Library as the first step toward automated testing.
+</Note>

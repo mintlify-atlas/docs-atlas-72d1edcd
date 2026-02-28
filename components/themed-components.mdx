@@ -1,0 +1,422 @@
+---
+title: ThemedText & ThemedView
+description: Theme-aware text and view primitives that automatically adapt to light and dark modes
+---
+
+# ThemedText & ThemedView
+
+Theme-aware primitives that automatically adapt to the current color scheme. These components form the foundation of Rippler's UI system and should be used instead of React Native's built-in `Text` and `View` components when theme integration is needed.
+
+## ThemedText
+
+A theme-aware text component with built-in typography variants.
+
+### Import
+
+```tsx
+import { ThemedText } from "@/components/ThemedText";
+```
+
+### Basic Usage
+
+<CodeGroup>
+```tsx Typography Variants
+import { ThemedText } from "@/components/ThemedText";
+
+function MyScreen() {
+  return (
+    <>
+      <ThemedText type="h1">Heading 1</ThemedText>
+      <ThemedText type="h2">Heading 2</ThemedText>
+      <ThemedText type="h3">Heading 3</ThemedText>
+      <ThemedText type="h4">Heading 4</ThemedText>
+      <ThemedText type="body">Body text</ThemedText>
+      <ThemedText type="small">Small text</ThemedText>
+      <ThemedText type="link">Link text</ThemedText>
+    </>
+  );
+}
+```
+
+```tsx Custom Colors
+import { ThemedText } from "@/components/ThemedText";
+
+function MyScreen() {
+  return (
+    <>
+      <ThemedText lightColor="#000000" darkColor="#FFFFFF">
+        Custom themed text
+      </ThemedText>
+      <ThemedText style={{ color: '#FF0000' }}>
+        Override with inline style
+      </ThemedText>
+    </>
+  );
+}
+```
+
+```tsx With Custom Styles
+import { ThemedText } from "@/components/ThemedText";
+
+function MyScreen() {
+  return (
+    <ThemedText 
+      type="h2"
+      style={{ 
+        marginBottom: 16,
+        textAlign: 'center',
+        fontWeight: '700'
+      }}
+    >
+      Centered Bold Heading
+    </ThemedText>
+  );
+}
+```
+</CodeGroup>
+
+### Props
+
+<ParamField path="type" type="'h1' | 'h2' | 'h3' | 'h4' | 'body' | 'small' | 'link'" default="'body'">
+  Typography variant that applies predefined text styles from `Typography` constants:
+  - `h1`: Large heading
+  - `h2`: Medium heading  
+  - `h3`: Small heading
+  - `h4`: Extra small heading
+  - `body`: Standard body text
+  - `small`: Smaller text for captions
+  - `link`: Link styling with `theme.link` color
+</ParamField>
+
+<ParamField path="lightColor" type="string" optional>
+  Text color to use in light mode. Overrides the default theme color
+</ParamField>
+
+<ParamField path="darkColor" type="string" optional>
+  Text color to use in dark mode. Overrides the default theme color
+</ParamField>
+
+<ParamField path="style" type="TextStyle" optional>
+  Additional React Native text styles
+</ParamField>
+
+<ParamField path="...rest" type="TextProps" optional>
+  All other props from React Native's `Text` component are supported
+</ParamField>
+
+### Real-World Examples
+
+#### Workout Screen Header
+
+From `WorkoutScreen.tsx:450-454`:
+
+```tsx
+<View style={styles.header}>
+  <ThemedText type="h1">Week {week}</ThemedText>
+  <ThemedText type="h2" style={{ color: theme.primary }}>
+    {day}
+  </ThemedText>
+</View>
+```
+
+#### Exercise Information
+
+From `ExerciseCard.tsx:99-100`:
+
+```tsx
+<ThemedText type="h3" style={styles.exerciseName}>
+  {exercise.exercise}
+</ThemedText>
+```
+
+#### Labels with Secondary Text Color
+
+From `ExerciseCard.tsx:105-107`:
+
+```tsx
+<ThemedText style={[styles.detailLabel, { color: theme.textSecondary }]}>
+  Weight
+</ThemedText>
+```
+
+### Typography System
+
+ThemedText uses centralized typography constants:
+
+<Tabs>
+  <Tab title="Headings">
+    ```tsx
+    Typography.h1 = { fontSize: 32, fontWeight: '700' }
+    Typography.h2 = { fontSize: 24, fontWeight: '700' }
+    Typography.h3 = { fontSize: 20, fontWeight: '600' }
+    Typography.h4 = { fontSize: 16, fontWeight: '600' }
+    ```
+    
+    Use headings for section titles and important text.
+  </Tab>
+  <Tab title="Body">
+    ```tsx
+    Typography.body = { fontSize: 14, fontWeight: '400' }
+    Typography.small = { fontSize: 12, fontWeight: '400' }
+    ```
+    
+    Use for regular content and descriptions.
+  </Tab>
+  <Tab title="Link">
+    ```tsx
+    Typography.link = { 
+      fontSize: 14, 
+      fontWeight: '500',
+      color: theme.link 
+    }
+    ```
+    
+    Automatically uses the theme's link color.
+  </Tab>
+</Tabs>
+
+### Color Resolution
+
+ThemedText resolves colors with the following priority:
+
+1. **Dark mode + darkColor**: Uses `darkColor` prop
+2. **Light mode + lightColor**: Uses `lightColor` prop
+3. **Link type**: Uses `theme.link`
+4. **Default**: Uses `theme.text`
+
+```tsx
+const getColor = () => {
+  if (isDark && darkColor) {
+    return darkColor;
+  }
+  if (!isDark && lightColor) {
+    return lightColor;
+  }
+  if (type === "link") {
+    return theme.link;
+  }
+  return theme.text;
+};
+```
+
+---
+
+## ThemedView
+
+A theme-aware view component that automatically applies background colors based on the current theme.
+
+### Import
+
+```tsx
+import { ThemedView } from "@/components/ThemedView";
+```
+
+### Basic Usage
+
+<CodeGroup>
+```tsx Default Background
+import { ThemedView } from "@/components/ThemedView";
+import { ThemedText } from "@/components/ThemedText";
+
+function MyScreen() {
+  return (
+    <ThemedView style={{ flex: 1, padding: 16 }}>
+      <ThemedText>Content with themed background</ThemedText>
+    </ThemedView>
+  );
+}
+```
+
+```tsx Custom Theme Colors
+import { ThemedView } from "@/components/ThemedView";
+
+function MyScreen() {
+  return (
+    <ThemedView 
+      lightColor="#F5F5F5" 
+      darkColor="#1A1A1A"
+      style={{ flex: 1 }}
+    >
+      {/* Content */}
+    </ThemedView>
+  );
+}
+```
+
+```tsx Screen Container
+import { ThemedView } from "@/components/ThemedView";
+import { ScrollView } from "react-native";
+
+function MyScreen() {
+  return (
+    <ThemedView style={styles.container}>
+      <ScrollView>
+        {/* Screen content */}
+      </ScrollView>
+    </ThemedView>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    padding: 16,
+  },
+});
+```
+</CodeGroup>
+
+### Props
+
+<ParamField path="lightColor" type="string" optional>
+  Background color to use in light mode. Overrides `theme.backgroundRoot`
+</ParamField>
+
+<ParamField path="darkColor" type="string" optional>
+  Background color to use in dark mode. Overrides `theme.backgroundRoot`
+</ParamField>
+
+<ParamField path="style" type="ViewStyle" optional>
+  Additional React Native view styles
+</ParamField>
+
+<ParamField path="...otherProps" type="ViewProps" optional>
+  All other props from React Native's `View` component are supported
+</ParamField>
+
+### Real-World Examples
+
+#### Goals Screen Container
+
+From `GoalsScreen.tsx:139`:
+
+```tsx
+<ThemedView style={styles.container}>
+  <ScrollView
+    style={styles.scrollView}
+    contentContainerStyle={[
+      styles.scrollContent,
+      {
+        paddingTop: headerHeight + Spacing.md,
+        paddingBottom: tabBarHeight + Spacing.xl,
+      },
+    ]}
+    showsVerticalScrollIndicator={false}
+  >
+    {/* Screen content */}
+  </ScrollView>
+</ThemedView>
+```
+
+### Background Color Resolution
+
+ThemedView resolves background color with the following priority:
+
+1. **Dark mode + darkColor**: Uses `darkColor` prop
+2. **Light mode + lightColor**: Uses `lightColor` prop  
+3. **Default**: Uses `theme.backgroundRoot`
+
+```tsx
+const backgroundColor =
+  isDark && darkColor
+    ? darkColor
+    : !isDark && lightColor
+      ? lightColor
+      : theme.backgroundRoot;
+```
+
+## TypeScript Interfaces
+
+### ThemedText
+
+```tsx
+export type ThemedTextProps = TextProps & {
+  lightColor?: string;
+  darkColor?: string;
+  type?: "h1" | "h2" | "h3" | "h4" | "body" | "small" | "link";
+};
+```
+
+### ThemedView
+
+```tsx
+export type ThemedViewProps = ViewProps & {
+  lightColor?: string;
+  darkColor?: string;
+};
+```
+
+## Best Practices
+
+<AccordionGroup>
+  <Accordion title="Use semantic type names">
+    Choose the typography type that matches the semantic meaning:
+    
+    ```tsx
+    // Good - semantic usage
+    <ThemedText type="h1">Screen Title</ThemedText>
+    <ThemedText type="h4">Section Header</ThemedText>
+    <ThemedText type="body">Description text</ThemedText>
+    
+    // Avoid - using h1 for everything
+    <ThemedText type="h1">Screen Title</ThemedText>
+    <ThemedText type="h1" style={{ fontSize: 16 }}>Section</ThemedText>
+    ```
+  </Accordion>
+  
+  <Accordion title="Prefer theme colors over hardcoded values">
+    Use `lightColor` and `darkColor` props sparingly. Let the theme handle colors:
+    
+    ```tsx
+    // Good - uses theme
+    <ThemedText type="body">Text</ThemedText>
+    <ThemedText style={{ color: theme.textSecondary }}>Secondary</ThemedText>
+    
+    // Avoid - hardcoded colors
+    <ThemedText lightColor="#333" darkColor="#CCC">Text</ThemedText>
+    ```
+  </Accordion>
+  
+  <Accordion title="Use ThemedView for screen containers">
+    Always wrap screens in ThemedView for consistent theming:
+    
+    ```tsx
+    export default function MyScreen() {
+      return (
+        <ThemedView style={styles.container}>
+          <ScrollView>
+            {/* content */}
+          </ScrollView>
+        </ThemedView>
+      );
+    }
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Theme Hook Integration
+
+Both components use the `useTheme` hook internally:
+
+```tsx
+import { useTheme } from "@/hooks/useTheme";
+
+export function ThemedText({ type = "body", ... }: ThemedTextProps) {
+  const { theme, isDark } = useTheme();
+  // Color resolution logic
+}
+
+export function ThemedView({ ... }: ThemedViewProps) {
+  const { theme, isDark } = useTheme();
+  // Background color resolution
+}
+```
+
+This ensures automatic updates when the theme changes.
+
+## Source Code
+
+- **ThemedText**: `client/components/ThemedText.tsx`
+- **ThemedView**: `client/components/ThemedView.tsx`
+
+Both components are thin wrappers around React Native primitives that add theme awareness and typography support.

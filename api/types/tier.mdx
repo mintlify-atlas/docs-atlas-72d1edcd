@@ -1,0 +1,174 @@
+---
+title: Tier Type
+description: Training tier classification system for exercise prioritization
+---
+
+## Overview
+
+The Tier type classifies exercises based on their priority and training intensity in the Rippler training methodology. This classification helps organize workouts and determines appropriate volume and intensity for each exercise.
+
+## Type Definition
+
+```typescript
+export type Tier = "T1" | "T2" | "T3a" | "T3b";
+```
+
+Tier is a string literal union type with four possible values, each representing a different training priority level.
+
+---
+
+## Tier Classifications
+
+<Card title="T1 - Primary Tier" icon="star">
+  **Highest Priority Exercises**
+  
+  T1 exercises are your main competition lifts or primary movement patterns. These receive the most volume and intensity focus in your training.
+  
+  **Characteristics:**
+  - Typically 3-5 sets
+  - Higher intensity (heavier weights)
+  - Lower rep ranges (1-5 reps)
+  - Require the most recovery
+  
+  **Examples:** Competition squat, bench press, deadlift
+</Card>
+
+<Card title="T2 - Secondary Tier" icon="diagram-project">
+  **Secondary Priority Exercises**
+  
+  T2 exercises are variations of main lifts or important supplementary movements that directly support your T1 exercises.
+  
+  **Characteristics:**
+  - Typically 3-4 sets
+  - Moderate to high intensity
+  - Medium rep ranges (5-8 reps)
+  - Balance between strength and volume
+  
+  **Examples:** Front squat, close-grip bench, Romanian deadlift, overhead press
+</Card>
+
+<Card title="T3a - Tertiary Tier A" icon="layer-group">
+  **High-Volume Accessories**
+  
+  T3a exercises are accessory movements with higher volume to build muscle and address weaknesses.
+  
+  **Characteristics:**
+  - Typically 3-4 sets
+  - Moderate intensity
+  - Higher rep ranges (8-12 reps)
+  - Focus on hypertrophy and technical practice
+  
+  **Examples:** Leg press, dumbbell bench, lat pulldowns, rows
+</Card>
+
+<Card title="T3b - Tertiary Tier B" icon="circle-dot">
+  **Isolation & Conditioning**
+  
+  T3b exercises are lighter isolation movements or conditioning work to address specific muscle groups or maintain work capacity.
+  
+  **Characteristics:**
+  - Typically 2-3 sets
+  - Lower intensity
+  - High rep ranges (12-20+ reps)
+  - Focus on muscle endurance and isolation
+  
+  **Examples:** Bicep curls, tricep extensions, face pulls, calf raises
+</Card>
+
+---
+
+## Usage in Types
+
+The Tier type is used in multiple interfaces throughout the app:
+
+<CodeGroup>
+```typescript TargetExercise
+export interface TargetExercise {
+  tier: Tier;  // Classifies the planned exercise
+  exercise: string;
+  weight: number | string;
+  reps: number | string;
+  sets: number | string;
+}
+```
+
+```typescript LoggedExercise
+export interface LoggedExercise {
+  tier: Tier;  // Preserves the classification in logged data
+  exercise: string;
+  sets: LoggedSet[];
+  notes?: string;
+}
+```
+</CodeGroup>
+
+---
+
+## Programming Guidelines
+
+<AccordionGroup>
+  <Accordion title="Workout Structure">
+    A typical Rippler workout day follows this structure:
+    
+    1. **1x T1 exercise** - Main lift for the day
+    2. **1-2x T2 exercises** - Supporting movements
+    3. **2-3x T3a exercises** - Hypertrophy accessories
+    4. **1-2x T3b exercises** - Isolation/conditioning work
+    
+    This creates a pyramid structure with intensity highest at T1 and volume highest at T3b.
+  </Accordion>
+  
+  <Accordion title="Progression Strategies">
+    Each tier typically uses different progression strategies:
+    
+    - **T1**: Linear or wave periodization with heavy weights
+    - **T2**: Progressive overload with moderate weights
+    - **T3a**: Volume accumulation and rep progression
+    - **T3b**: Constant tension, pump work, or conditioning
+  </Accordion>
+  
+  <Accordion title="Recovery Considerations">
+    Recovery requirements decrease as you move from T1 to T3b:
+    
+    - **T1**: 3-5 minutes rest between sets
+    - **T2**: 2-3 minutes rest between sets
+    - **T3a**: 1-2 minutes rest between sets
+    - **T3b**: 30-60 seconds rest between sets
+  </Accordion>
+</AccordionGroup>
+
+---
+
+## Type Safety
+
+<Note>
+Using a string literal union type ensures type safety at compile time. TypeScript will catch any typos or invalid tier values:
+
+```typescript
+// ✅ Valid
+const exercise: TargetExercise = {
+  tier: "T1",
+  exercise: "Squat",
+  weight: 315,
+  reps: 5,
+  sets: 3
+};
+
+// ❌ Type error: "T4" is not assignable to type Tier
+const invalid: TargetExercise = {
+  tier: "T4",  // Error!
+  exercise: "Squat",
+  weight: 315,
+  reps: 5,
+  sets: 3
+};
+```
+</Note>
+
+---
+
+## Related Types
+
+- [TargetExercise](/api/types/exercise#targetexercise) - Uses Tier to classify planned exercises
+- [LoggedExercise](/api/types/exercise#loggedexercise) - Preserves Tier in logged workout data
+- [WorkoutDay](/api/types/workout#workoutday) - Contains exercises organized by tier

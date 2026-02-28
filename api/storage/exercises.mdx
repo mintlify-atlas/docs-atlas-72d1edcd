@@ -1,0 +1,323 @@
+---
+title: Exercise Storage
+description: Functions for managing exercises in your workout library including create, read, update, and delete operations
+---
+
+## Overview
+
+Exercise storage functions manage the user's exercise library. Each exercise has a unique ID, a name, and optional notes. On first load, exercises are initialized from the default Rippler program.
+
+## Storage Key
+
+<ResponseField name="@rippler/exercises" type="string">
+  Stores the JSON-serialized array of Exercise objects
+</ResponseField>
+
+## Functions
+
+### getExercises
+
+Retrieves all exercises from storage. If no exercises exist, initializes with default exercises from the Rippler program.
+
+```typescript
+async function getExercises(): Promise<Exercise[]>
+```
+
+<ResponseField name="return" type="Exercise[]">
+  Array of all exercises, or empty array if an error occurs
+</ResponseField>
+
+<Tip>
+  This function automatically initializes exercises from `ripplerProgram.exercises` on first run, creating IDs and saving them to storage.
+</Tip>
+
+**Example**
+
+```typescript
+import { getExercises } from '@/lib/storage';
+
+const exercises = await getExercises();
+console.log(exercises);
+// [
+//   { id: 'ex_0', name: 'Squat' },
+//   { id: 'ex_1', name: 'Bench Press' },
+//   { id: 'ex_2', name: 'Deadlift', notes: 'Focus on form' }
+// ]
+```
+
+**Source Code Reference**
+
+See implementation at `lib/storage.ts:13-31`
+
+---
+
+### saveExercises
+
+Saves the complete array of exercises to storage, overwriting existing data.
+
+```typescript
+async function saveExercises(exercises: Exercise[]): Promise<void>
+```
+
+<ParamField path="exercises" type="Exercise[]" required>
+  Complete array of exercises to save
+</ParamField>
+
+<Warning>
+  This function overwrites all existing exercises. Ensure you've loaded current exercises with `getExercises()` before modifying and saving.
+</Warning>
+
+**Example**
+
+```typescript
+import { getExercises, saveExercises } from '@/lib/storage';
+
+// Load current exercises
+const exercises = await getExercises();
+
+// Modify array
+exercises[0].notes = 'Updated notes';
+
+// Save back to storage
+await saveExercises(exercises);
+```
+
+**Source Code Reference**
+
+See implementation at `lib/storage.ts:33-39`
+
+---
+
+### addExercise
+
+Creates a new exercise and adds it to storage. Generates a unique timestamp-based ID.
+
+```typescript
+async function addExercise(name: string, notes?: string): Promise<Exercise>
+```
+
+<ParamField path="name" type="string" required>
+  The name of the exercise (e.g., "Squat", "Bench Press")
+</ParamField>
+
+<ParamField path="notes" type="string">
+  Optional notes about the exercise (form cues, variations, etc.)
+</ParamField>
+
+<ResponseField name="return" type="Exercise">
+  The newly created exercise object with generated ID
+</ResponseField>
+
+**Example**
+
+```typescript
+import { addExercise } from '@/lib/storage';
+
+const newExercise = await addExercise(
+  'Romanian Deadlift',
+  'Keep knees slightly bent'
+);
+
+console.log(newExercise);
+// {
+//   id: 'ex_1234567890',
+//   name: 'Romanian Deadlift',
+//   notes: 'Keep knees slightly bent'
+// }
+```
+
+**ID Generation**
+
+Exercise IDs are generated using the pattern `ex_${Date.now()}`, ensuring uniqueness based on creation timestamp.
+
+**Source Code Reference**
+
+See implementation at `lib/storage.ts:41-51`
+
+---
+
+### updateExercise
+
+Updates specific fields of an existing exercise by ID. Uses partial updates to modify only the fields you specify.
+
+```typescript
+async function updateExercise(
+  id: string,
+  updates: Partial<Exercise>
+): Promise<void>
+```
+
+<ParamField path="id" type="string" required>
+  The unique ID of the exercise to update
+</ParamField>
+
+<ParamField path="updates" type="Partial<Exercise>" required>
+  Object containing the fields to update (name, notes, etc.)
+</ParamField>
+
+<Info>
+  If the exercise ID is not found, the function completes silently without throwing an error.
+</Info>
+
+**Example**
+
+```typescript
+import { updateExercise } from '@/lib/storage';
+
+// Update just the name
+await updateExercise('ex_1234567890', {
+  name: 'Front Squat'
+});
+
+// Update multiple fields
+await updateExercise('ex_1234567890', {
+  name: 'Front Squat',
+  notes: 'Elbows high, core tight'
+});
+```
+
+**Source Code Reference**
+
+See implementation at `lib/storage.ts:53-63`
+
+---
+
+### deleteExercise
+
+Removes an exercise from storage by ID.
+
+```typescript
+async function deleteExercise(id: string): Promise<void>
+```
+
+<ParamField path="id" type="string" required>
+  The unique ID of the exercise to delete
+</ParamField>
+
+<Warning>
+  This operation cannot be undone. Consider warning users before deletion, especially if the exercise is referenced in logged workouts or goal weights.
+</Warning>
+
+**Example**
+
+```typescript
+import { deleteExercise } from '@/lib/storage';
+
+await deleteExercise('ex_1234567890');
+```
+
+**Source Code Reference**
+
+See implementation at `lib/storage.ts:65-69`
+
+---
+
+## Data Type
+
+```typescript
+export interface Exercise {
+  id: string;        // Unique identifier (e.g., 'ex_1234567890')
+  name: string;      // Exercise name (e.g., 'Squat')
+  notes?: string;    // Optional notes about form, variations, etc.
+}
+```
+
+## Common Patterns
+
+### Loading and Displaying Exercises
+
+```typescript
+import { getExercises } from '@/lib/storage';
+import { FlatList, Text } from 'react-native';
+
+function ExerciseList() {
+  const [exercises, setExercises] = useState<Exercise[]>([]);
+
+  useEffect(() => {
+    loadExercises();
+  }, []);
+
+  async function loadExercises() {
+    const data = await getExercises();
+    setExercises(data);
+  }
+
+  return (
+    <FlatList
+      data={exercises}
+      keyExtractor={(item) => item.id}
+      renderItem={({ item }) => <Text>{item.name}</Text>}
+    />
+  );
+}
+```
+
+### Creating an Exercise Form
+
+```typescript
+import { addExercise } from '@/lib/storage';
+import { useState } from 'react';
+
+function AddExerciseForm({ onComplete }: { onComplete: () => void }) {
+  const [name, setName] = useState('');
+  const [notes, setNotes] = useState('');
+
+  async function handleSubmit() {
+    if (!name.trim()) return;
+    
+    await addExercise(name, notes || undefined);
+    setName('');
+    setNotes('');
+    onComplete();
+  }
+
+  return (
+    <View>
+      <TextInput
+        placeholder="Exercise name"
+        value={name}
+        onChangeText={setName}
+      />
+      <TextInput
+        placeholder="Notes (optional)"
+        value={notes}
+        onChangeText={setNotes}
+      />
+      <Button title="Add Exercise" onPress={handleSubmit} />
+    </View>
+  );
+}
+```
+
+### Batch Updating Multiple Exercises
+
+```typescript
+import { getExercises, saveExercises } from '@/lib/storage';
+
+async function addNotesToAllSquats() {
+  // Load all exercises
+  const exercises = await getExercises();
+  
+  // Modify in memory
+  const updated = exercises.map(ex => {
+    if (ex.name.toLowerCase().includes('squat')) {
+      return { ...ex, notes: 'Drive through heels' };
+    }
+    return ex;
+  });
+  
+  // Single save operation
+  await saveExercises(updated);
+}
+```
+
+## Related Functions
+
+<CardGroup cols={2}>
+  <Card title="getGoalWeight" icon="bullseye" href="/api/storage/goals#getgoalweight">
+    Get goal weight for an exercise by name
+  </Card>
+  <Card title="getLoggedWorkouts" icon="clipboard-list" href="/api/storage/workouts#getloggedworkouts">
+    View exercises logged in workouts
+  </Card>
+</CardGroup>

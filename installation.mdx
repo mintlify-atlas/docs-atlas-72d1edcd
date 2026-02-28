@@ -1,0 +1,716 @@
+---
+title: Installation
+description: Complete development environment setup for building and running Rippler on iOS, Android, and web.
+---
+
+## Prerequisites
+
+Before installing Rippler, make sure you have the following tools installed on your system.
+
+<AccordionGroup>
+  <Accordion title="Node.js & npm" icon="node-js">
+    **Required Version**: Node.js 18+ with npm 9+
+
+    Check your current versions:
+    ```bash
+    node --version  # Should be v18.0.0 or higher
+    npm --version   # Should be 9.0.0 or higher
+    ```
+
+    **Install Node.js**:
+    - Download from [nodejs.org](https://nodejs.org/)
+    - Or use a version manager like [nvm](https://github.com/nvm-sh/nvm):
+
+    ```bash
+    # Install nvm (macOS/Linux)
+    curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.0/install.sh | bash
+
+    # Install Node.js 18
+    nvm install 18
+    nvm use 18
+    ```
+  </Accordion>
+
+  <Accordion title="Git" icon="git-alt">
+    **Required for**: Cloning the repository
+
+    Check if installed:
+    ```bash
+    git --version
+    ```
+
+    **Install Git**:
+    - macOS: `brew install git` or download from [git-scm.com](https://git-scm.com/)
+    - Linux: `sudo apt-get install git` (Ubuntu/Debian) or `sudo yum install git` (CentOS/RHEL)
+    - Windows: Download from [git-scm.com](https://git-scm.com/)
+  </Accordion>
+
+  <Accordion title="Expo CLI" icon="mobile">
+    **Not required for installation** - Expo CLI is included as a project dependency.
+
+    The app uses `npx expo` commands which automatically use the correct version from `node_modules`.
+  </Accordion>
+
+  <Accordion title="PostgreSQL (Optional)" icon="database">
+    **Required for**: Server-side data persistence (optional for client-only development)
+
+    Check if installed:
+    ```bash
+    psql --version
+    ```
+
+    **Install PostgreSQL**:
+    - macOS: `brew install postgresql@15` then `brew services start postgresql@15`
+    - Linux: `sudo apt-get install postgresql postgresql-contrib`
+    - Windows: Download from [postgresql.org](https://www.postgresql.org/download/windows/)
+
+    **Create the database**:
+    ```bash
+    createdb rippler
+    ```
+
+    <Note>
+      You can skip PostgreSQL setup if you only want to run the mobile app. AsyncStorage handles all client-side persistence.
+    </Note>
+  </Accordion>
+</AccordionGroup>
+
+## Platform-Specific Setup
+
+Choose your development platform(s). You can set up multiple platforms on the same machine.
+
+<Tabs>
+  <Tab title="iOS (macOS only)">
+    ### iOS Development Setup
+
+    <Steps>
+      <Step title="Install Xcode">
+        Download Xcode from the Mac App Store (15GB+, takes 30+ minutes).
+
+        After installation, open Xcode and accept the license agreement.
+
+        Install command line tools:
+        ```bash
+        xcode-select --install
+        ```
+      </Step>
+
+      <Step title="Install iOS Simulator">
+        Open Xcode → Settings → Platforms
+
+        Download the iOS simulator runtime for your target iOS version (iOS 17+ recommended).
+      </Step>
+
+      <Step title="Install CocoaPods">
+        Required for iOS native dependencies:
+
+        ```bash
+        sudo gem install cocoapods
+        pod --version  # Verify installation
+        ```
+      </Step>
+
+      <Step title="Install Expo Go (Optional)">
+        For testing on a physical iPhone:
+
+        1. Open the App Store on your iPhone
+        2. Search for "Expo Go"
+        3. Install the app
+
+        <Note>
+          Expo Go is free and doesn't require an Apple Developer account for development.
+        </Note>
+      </Step>
+    </Steps>
+
+    ### Verify iOS Setup
+
+    Test that the simulator works:
+    ```bash
+    npx expo start
+    # Press 'i' to open iOS simulator
+    ```
+
+    The simulator should launch and the app should load automatically.
+  </Tab>
+
+  <Tab title="Android">
+    ### Android Development Setup
+
+    <Steps>
+      <Step title="Install Android Studio">
+        Download Android Studio from [developer.android.com](https://developer.android.com/studio)
+
+        During installation, make sure to install:
+        - Android SDK
+        - Android SDK Platform
+        - Android Virtual Device (AVD)
+      </Step>
+
+      <Step title="Configure Android SDK">
+        Open Android Studio → Settings → Appearance & Behavior → System Settings → Android SDK
+
+        Install the following:
+        - **SDK Platforms**: Android 13 (API 33) or higher
+        - **SDK Tools**: Android SDK Build-Tools, Android Emulator, Android SDK Platform-Tools
+
+        Note your SDK location (e.g., `~/Android/Sdk`)
+      </Step>
+
+      <Step title="Set Environment Variables">
+        Add to your shell profile (`~/.zshrc`, `~/.bashrc`, etc.):
+
+        ```bash
+        export ANDROID_HOME=$HOME/Android/Sdk
+        export PATH=$PATH:$ANDROID_HOME/emulator
+        export PATH=$PATH:$ANDROID_HOME/platform-tools
+        export PATH=$PATH:$ANDROID_HOME/tools
+        export PATH=$PATH:$ANDROID_HOME/tools/bin
+        ```
+
+        Reload your shell:
+        ```bash
+        source ~/.zshrc  # or source ~/.bashrc
+        ```
+
+        Verify:
+        ```bash
+        echo $ANDROID_HOME
+        adb --version
+        ```
+      </Step>
+
+      <Step title="Create Virtual Device">
+        Open Android Studio → Device Manager → Create Device
+
+        Recommended configuration:
+        - **Device**: Pixel 7 Pro
+        - **System Image**: Android 13 (API 33) - x86_64
+        - **AVD Name**: Pixel_7_Pro_API_33
+
+        Start the emulator to verify it works.
+      </Step>
+
+      <Step title="Install Expo Go (Optional)">
+        For testing on a physical Android device:
+
+        1. Open Google Play Store on your phone
+        2. Search for "Expo Go"
+        3. Install the app
+        4. Enable Developer Options on your phone (tap Build Number 7 times in Settings)
+      </Step>
+    </Steps>
+
+    ### Verify Android Setup
+
+    Test that the emulator works:
+    ```bash
+    npx expo start
+    # Press 'a' to open Android emulator
+    ```
+
+    The emulator should launch and the app should install automatically.
+  </Tab>
+
+  <Tab title="Web">
+    ### Web Development Setup
+
+    No additional setup required! Web support works out of the box with your existing browser.
+
+    <Note>
+      Rippler uses React Native Web to render the same components in a browser. Some native features (haptics, camera) won't work on web.
+    </Note>
+
+    ### Test Web Version
+
+    ```bash
+    npx expo start
+    # Press 'w' to open in browser
+    ```
+
+    The app opens at `http://localhost:8081` by default.
+  </Tab>
+</Tabs>
+
+## Project Installation
+
+Now that your development environment is ready, let's install Rippler.
+
+<Steps>
+  <Step title="Clone the Repository">
+    ```bash
+    git clone <repository-url> rippler
+    cd rippler
+    ```
+
+    Replace `<repository-url>` with your actual repository URL.
+  </Step>
+
+  <Step title="Install Dependencies">
+    Install all npm packages:
+
+    ```bash
+    npm install
+    ```
+
+    This installs:
+    - Expo SDK and React Native
+    - React Navigation and UI libraries
+    - TanStack Query for state management
+    - Express server dependencies
+    - TypeScript and development tools
+
+    Expected output:
+    ```
+    added 1342 packages, and audited 1343 packages in 45s
+    ```
+
+    <Note>
+      Installation may take 2-5 minutes depending on your internet speed.
+    </Note>
+  </Step>
+
+  <Step title="Configure Environment Variables">
+    Create a `.env` file in the project root:
+
+    ```bash .env
+    # Database Configuration (optional)
+    DATABASE_URL="postgresql://user:password@localhost:5432/rippler"
+
+    # Server Configuration
+    PORT=5000
+
+    # Replit Configuration (only for Replit deployments)
+    # REPLIT_DEV_DOMAIN="your-domain.replit.dev"
+    # REPLIT_DOMAINS="domain1.replit.dev,domain2.replit.dev"
+    ```
+
+    <Warning>
+      Never commit `.env` to version control. It's already in `.gitignore`.
+    </Warning>
+
+    **Configuration Details**:
+
+    - `DATABASE_URL`: PostgreSQL connection string (optional for client-only dev)
+    - `PORT`: Express server port (defaults to 5000)
+    - `REPLIT_*`: Only needed if deploying to Replit
+  </Step>
+
+  <Step title="Set Up Database (Optional)">
+    If you want to use the PostgreSQL backend:
+
+    ```bash
+    # Create database
+    createdb rippler
+
+    # Push schema using Drizzle Kit
+    npm run db:push
+    ```
+
+    The schema is defined in `shared/schema.ts`:
+
+    ```typescript shared/schema.ts
+    import { pgTable, text, varchar } from "drizzle-orm/pg-core";
+    import { sql } from "drizzle-orm";
+
+    export const users = pgTable("users", {
+      id: varchar("id")
+        .primaryKey()
+        .default(sql`gen_random_uuid()`),
+      username: text("username").notNull().unique(),
+      password: text("password").notNull(),
+    });
+    ```
+
+    <Note>
+      Currently the database is only used for user management. Workout data is stored in AsyncStorage on the client.
+    </Note>
+  </Step>
+
+  <Step title="Verify Installation">
+    Check that TypeScript compiles without errors:
+
+    ```bash
+    npm run check:types
+    ```
+
+    Expected output:
+    ```
+    ✓ No TypeScript errors
+    ```
+
+    Run the linter:
+    ```bash
+    npm run lint
+    ```
+
+    Expected output:
+    ```
+    ✓ No linting errors
+    ```
+  </Step>
+</Steps>
+
+## Development Servers
+
+Rippler has two separate processes: the Expo dev server (client) and Express server (backend).
+
+### Start the Expo Dev Server
+
+Start the React Native app with hot reloading:
+
+```bash
+npm run expo:dev
+```
+
+This runs:
+```bash
+EXPO_PACKAGER_PROXY_URL=https://$REPLIT_DEV_DOMAIN \
+REACT_NATIVE_PACKAGER_HOSTNAME=$REPLIT_DEV_DOMAIN \
+EXPO_PUBLIC_DOMAIN=$REPLIT_DEV_DOMAIN:5000 \
+npx expo start --localhost
+```
+
+<Accordion title="What these environment variables do">
+  - `EXPO_PACKAGER_PROXY_URL`: Proxy for Metro bundler (Replit-specific)
+  - `REACT_NATIVE_PACKAGER_HOSTNAME`: Metro hostname for mobile devices
+  - `EXPO_PUBLIC_DOMAIN`: Backend API URL accessible from the app
+
+  These are primarily for Replit deployments. For local dev, `--localhost` is sufficient.
+</Accordion>
+
+**Dev server options**:
+- Press `i` → Open iOS simulator
+- Press `a` → Open Android emulator
+- Press `w` → Open web browser
+- Press `r` → Reload app
+- Press `m` → Toggle menu
+- Press `j` → Open debugger
+
+### Start the Express Server (Optional)
+
+In a separate terminal, start the backend:
+
+```bash
+npm run server:dev
+```
+
+This runs:
+```bash
+NODE_ENV=development tsx server/index.ts
+```
+
+The server includes:
+- Express API routes
+- CORS configuration for Expo
+- Static file serving for production builds
+- Request logging middleware
+
+```typescript server/index.ts
+const app = express();
+
+setupCors(app);           // Enable CORS for mobile clients
+setupBodyParsing(app);    // JSON and form parsing
+setupRequestLogging(app); // Log all API requests
+
+configureExpoAndLanding(app);  // Serve Expo manifests
+const server = await registerRoutes(app);  // API routes
+
+setupErrorHandler(app);   // Global error handling
+
+server.listen({ port: 5000, host: "0.0.0.0" });
+```
+
+<Note>
+  The server is optional for client development. The mobile app works entirely with AsyncStorage without a backend.
+</Note>
+
+## Project Configuration
+
+Understanding the key configuration files:
+
+<CodeGroup>
+```json package.json
+{
+  "name": "my-app",
+  "main": "client/index.js",
+  "version": "1.0.0",
+  "scripts": {
+    "expo:dev": "EXPO_PACKAGER_PROXY_URL=... npx expo start --localhost",
+    "server:dev": "NODE_ENV=development tsx server/index.ts",
+    "db:push": "drizzle-kit push",
+    "lint": "npx expo lint",
+    "check:types": "tsc --noEmit",
+    "format": "prettier --write \"**/*.{js,ts,tsx,css,json}\""
+  },
+  "dependencies": {
+    "expo": "^54.0.23",
+    "react": "19.1.0",
+    "react-native": "0.81.5",
+    "@tanstack/react-query": "^5.90.7",
+    "drizzle-orm": "^0.39.3"
+  }
+}
+```
+
+```json app.json
+{
+  "expo": {
+    "name": "Rippler",
+    "slug": "rippler",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "scheme": "rippler",
+    "newArchEnabled": true,
+    "experiments": {
+      "reactCompiler": true
+    },
+    "plugins": [
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/images/splash-icon.png",
+          "imageWidth": 200,
+          "resizeMode": "contain",
+          "backgroundColor": "#ffffff"
+        }
+      ]
+    ]
+  }
+}
+```
+
+```json tsconfig.json
+{
+  "extends": "expo/tsconfig.base.json",
+  "compilerOptions": {
+    "strict": true,
+    "esModuleInterop": true,
+    "paths": {
+      "@/*": ["./client/*"],
+      "@shared/*": ["./shared/*"]
+    },
+    "types": ["node"]
+  }
+}
+```
+
+```javascript babel.config.js
+module.exports = function (api) {
+  api.cache(true);
+  return {
+    presets: ["babel-preset-expo"],
+    plugins: [
+      [
+        "module-resolver",
+        {
+          root: ["./"],
+          alias: {
+            "@": "./client",
+            "@shared": "./shared",
+          },
+        },
+      ],
+      "react-native-reanimated/plugin",
+    ],
+  };
+};
+```
+
+```typescript drizzle.config.ts
+import { defineConfig } from "drizzle-kit";
+
+if (!process.env.DATABASE_URL) {
+  throw new Error("DATABASE_URL must be set");
+}
+
+export default defineConfig({
+  out: "./migrations",
+  schema: "./shared/schema.ts",
+  dialect: "postgresql",
+  dbCredentials: {
+    url: process.env.DATABASE_URL,
+  },
+});
+```
+</CodeGroup>
+
+## Key Features Explained
+
+<AccordionGroup>
+  <Accordion title="New Architecture Enabled" icon="microchip">
+    Rippler uses React Native's new architecture:
+
+    ```json app.json
+    {
+      "expo": {
+        "newArchEnabled": true
+      }
+    }
+    ```
+
+    Benefits:
+    - **Faster rendering** with synchronous layout
+    - **Better interop** between JS and native code
+    - **Improved type safety** with TurboModules
+
+    This requires React Native 0.81.5+ (which Rippler uses).
+  </Accordion>
+
+  <Accordion title="React Compiler (Experimental)" icon="bolt">
+    Rippler enables the experimental React Compiler:
+
+    ```json app.json
+    {
+      "expo": {
+        "experiments": {
+          "reactCompiler": true
+        }
+      }
+    }
+    ```
+
+    The React Compiler automatically memoizes components and values, eliminating the need for manual `useMemo` and `useCallback` in many cases.
+  </Accordion>
+
+  <Accordion title="Path Aliases" icon="folder-tree">
+    Import from anywhere with clean paths:
+
+    ```typescript
+    // Instead of:
+    import { Button } from "../../../components/Button";
+
+    // Use:
+    import { Button } from "@/components/Button";
+    ```
+
+    Configured in `tsconfig.json` and `babel.config.js`.
+  </Accordion>
+
+  <Accordion title="Drizzle ORM" icon="database">
+    Type-safe database queries with Drizzle:
+
+    ```typescript
+    import { drizzle } from "drizzle-orm/node-postgres";
+    import { users } from "@shared/schema";
+
+    const db = drizzle(pool);
+
+    // Fully typed queries
+    const allUsers = await db.select().from(users);
+    ```
+
+    Schema migrations with:
+    ```bash
+    npm run db:push  # Push schema changes
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="npm install fails with peer dependency warnings" icon="triangle-exclamation">
+    Peer dependency warnings are normal with React Native. As long as the install completes, you can ignore them.
+
+    If install fails completely, try:
+    ```bash
+    rm -rf node_modules package-lock.json
+    npm install --legacy-peer-deps
+    ```
+  </Accordion>
+
+  <Accordion title="Metro bundler can't resolve @/* imports" icon="question">
+    Clear Metro cache and restart:
+
+    ```bash
+    npx expo start --clear
+    ```
+
+    If that doesn't work, check that `babel.config.js` has the module-resolver plugin configured correctly.
+  </Accordion>
+
+  <Accordion title="iOS simulator doesn't open" icon="apple">
+    Make sure Xcode is fully installed and you've accepted the license:
+
+    ```bash
+    sudo xcodebuild -license accept
+    xcode-select --install
+    ```
+
+    Check available simulators:
+    ```bash
+    xcrun simctl list devices
+    ```
+  </Accordion>
+
+  <Accordion title="Android emulator shows 'Could not connect to development server'" icon="android">
+    The emulator can't reach Metro. Try:
+
+    ```bash
+    adb reverse tcp:8081 tcp:8081
+    adb reverse tcp:5000 tcp:5000
+    ```
+
+    Or use tunnel mode:
+    ```bash
+    npx expo start --tunnel
+    ```
+  </Accordion>
+
+  <Accordion title="Database connection fails" icon="database">
+    Verify PostgreSQL is running:
+
+    ```bash
+    # macOS
+    brew services list
+
+    # Linux
+    sudo systemctl status postgresql
+    ```
+
+    Test connection:
+    ```bash
+    psql -U postgres -c "SELECT version();"
+    ```
+
+    Check your `.env` file has the correct `DATABASE_URL`.
+  </Accordion>
+</AccordionGroup>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card
+    title="Architecture Overview"
+    icon="sitemap"
+    href="/architecture/overview"
+  >
+    Learn how Rippler is structured and how components interact
+  </Card>
+  <Card
+    title="API Reference"
+    icon="code"
+    href="/api/storage/overview"
+  >
+    Explore the storage APIs, hooks, and type definitions
+  </Card>
+  <Card
+    title="Component Library"
+    icon="layer-group"
+    href="/components/overview"
+  >
+    Browse all reusable UI components with examples
+  </Card>
+  <Card
+    title="Development Scripts"
+    icon="rocket"
+    href="/development/scripts"
+  >
+    Learn about available npm scripts and development workflow
+  </Card>
+</CardGroup>
+
+<Check>
+  **Installation complete!** You now have a fully configured Rippler development environment. Start the dev servers and begin building.
+</Check>

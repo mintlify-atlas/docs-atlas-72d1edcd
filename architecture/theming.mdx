@@ -1,0 +1,681 @@
+---
+title: Theming System
+description: Complete guide to Rippler's theming architecture, dark mode support, design tokens, and themed components
+---
+
+## Theming Philosophy
+
+Rippler implements a **comprehensive theming system** that supports:
+
+- **Automatic dark mode** based on system preferences
+- **Design tokens** for consistent spacing, colors, and typography
+- **Themed components** that adapt to color scheme changes
+- **Platform-specific optimizations** for iOS and Android
+
+<Note>
+The theme system is built around React Context and hooks, providing O(1) access to theme values throughout the component tree.
+</Note>
+
+## Theme Configuration
+
+### Color Palette
+
+All colors are defined in `client/constants/theme.ts`:
+
+```ts client/constants/theme.ts:1-50
+import { Platform } from "react-native";
+
+const primaryBlue = "#1E88E5";
+const secondaryTeal = "#00ACC1";
+const successGreen = "#43A047";
+
+export const Colors = {
+  light: {
+    text: "#212121",
+    textSecondary: "#757575",
+    buttonText: "#FFFFFF",
+    tabIconDefault: "#757575",
+    tabIconSelected: primaryBlue,
+    link: primaryBlue,
+    primary: primaryBlue,
+    secondary: secondaryTeal,
+    success: successGreen,
+    disabled: "#BDBDBD",
+    backgroundRoot: "#FAFAFA",
+    backgroundDefault: "#FFFFFF",
+    backgroundSecondary: "#F5F5F5",
+    backgroundTertiary: "#EEEEEE",
+    border: "#E0E0E0",
+    t1: "#1E88E5",
+    t2: "#00ACC1",
+    t3a: "#7E57C2",
+    t3b: "#26A69A",
+  },
+  dark: {
+    text: "#FFFFFF",
+    textSecondary: "#B0B0B0",
+    buttonText: "#FFFFFF",
+    tabIconDefault: "#9BA1A6",
+    tabIconSelected: "#0A84FF",
+    link: "#0A84FF",
+    primary: "#0A84FF",
+    secondary: "#00BCD4",
+    success: "#66BB6A",
+    disabled: "#616161",
+    backgroundRoot: "#121212",
+    backgroundDefault: "#1E1E1E",
+    backgroundSecondary: "#2A2A2A",
+    backgroundTertiary: "#333333",
+    border: "#333333",
+    t1: "#42A5F5",
+    t2: "#26C6DA",
+    t3a: "#9575CD",
+    t3b: "#4DB6AC",
+  },
+};
+```
+
+<Tabs>
+  <Tab title="Semantic Colors">
+    <ResponseField name="text" type="string">
+      Primary text color
+    </ResponseField>
+    <ResponseField name="textSecondary" type="string">
+      Secondary/muted text color
+    </ResponseField>
+    <ResponseField name="buttonText" type="string">
+      Text color for buttons
+    </ResponseField>
+    <ResponseField name="primary" type="string">
+      Primary brand color (blue)
+    </ResponseField>
+    <ResponseField name="secondary" type="string">
+      Secondary accent color (teal)
+    </ResponseField>
+    <ResponseField name="success" type="string">
+      Success state color (green)
+    </ResponseField>
+    <ResponseField name="disabled" type="string">
+      Disabled state color
+    </ResponseField>
+  </Tab>
+  
+  <Tab title="Background Colors">
+    <ResponseField name="backgroundRoot" type="string">
+      Root screen background
+    </ResponseField>
+    <ResponseField name="backgroundDefault" type="string">
+      Card and content backgrounds
+    </ResponseField>
+    <ResponseField name="backgroundSecondary" type="string">
+      Secondary surfaces
+    </ResponseField>
+    <ResponseField name="backgroundTertiary" type="string">
+      Tertiary surfaces and input backgrounds
+    </ResponseField>
+  </Tab>
+  
+  <Tab title="Tier Colors">
+    <ResponseField name="t1" type="string">
+      Tier 1 exercises (main lifts)
+    </ResponseField>
+    <ResponseField name="t2" type="string">
+      Tier 2 exercises (secondary lifts)
+    </ResponseField>
+    <ResponseField name="t3a" type="string">
+      Tier 3a exercises (accessories)
+    </ResponseField>
+    <ResponseField name="t3b" type="string">
+      Tier 3b exercises (accessories)
+    </ResponseField>
+  </Tab>
+  
+  <Tab title="UI Colors">
+    <ResponseField name="tabIconDefault" type="string">
+      Inactive tab icon color
+    </ResponseField>
+    <ResponseField name="tabIconSelected" type="string">
+      Active tab icon color
+    </ResponseField>
+    <ResponseField name="link" type="string">
+      Hyperlink color
+    </ResponseField>
+    <ResponseField name="border" type="string">
+      Border and divider color
+    </ResponseField>
+  </Tab>
+</Tabs>
+
+### Spacing Scale
+
+Consistent spacing using a scale-based system:
+
+```ts client/constants/theme.ts:52-64
+export const Spacing = {
+  xs: 4,
+  sm: 8,
+  md: 12,
+  lg: 16,
+  xl: 20,
+  "2xl": 24,
+  "3xl": 32,
+  "4xl": 40,
+  "5xl": 48,
+  inputHeight: 48,
+  buttonHeight: 52,
+};
+```
+
+<CodeGroup>
+```tsx Using Spacing
+import { Spacing } from '@/constants/theme';
+
+const styles = StyleSheet.create({
+  container: {
+    padding: Spacing.lg,        // 16
+    marginBottom: Spacing['2xl'], // 24
+  },
+  button: {
+    height: Spacing.buttonHeight, // 52
+  },
+});
+```
+</CodeGroup>
+
+### Border Radius Scale
+
+```ts client/constants/theme.ts:66-75
+export const BorderRadius = {
+  xs: 8,
+  sm: 12,
+  md: 18,
+  lg: 24,
+  xl: 30,
+  "2xl": 40,
+  "3xl": 50,
+  full: 9999,
+};
+```
+
+### Typography System
+
+Type scale with predefined font sizes, line heights, and weights:
+
+```ts client/constants/theme.ts:77-123
+export const Typography = {
+  hero: {
+    fontSize: 32,
+    lineHeight: 40,
+    fontWeight: "700" as const,
+  },
+  h1: {
+    fontSize: 24,
+    lineHeight: 32,
+    fontWeight: "700" as const,
+  },
+  h2: {
+    fontSize: 20,
+    lineHeight: 28,
+    fontWeight: "600" as const,
+  },
+  h3: {
+    fontSize: 18,
+    lineHeight: 26,
+    fontWeight: "600" as const,
+  },
+  h4: {
+    fontSize: 16,
+    lineHeight: 24,
+    fontWeight: "600" as const,
+  },
+  body: {
+    fontSize: 16,
+    lineHeight: 24,
+    fontWeight: "400" as const,
+  },
+  small: {
+    fontSize: 14,
+    lineHeight: 20,
+    fontWeight: "400" as const,
+  },
+  caption: {
+    fontSize: 12,
+    lineHeight: 16,
+    fontWeight: "400" as const,
+  },
+  link: {
+    fontSize: 16,
+    lineHeight: 24,
+    fontWeight: "400" as const,
+  },
+};
+```
+
+### Font Families
+
+Platform-specific font stacks:
+
+```ts client/constants/theme.ts:125-146
+export const Fonts = Platform.select({
+  ios: {
+    sans: "system-ui",
+    serif: "ui-serif",
+    rounded: "ui-rounded",
+    mono: "ui-monospace",
+  },
+  default: {
+    sans: "normal",
+    serif: "serif",
+    rounded: "normal",
+    mono: "monospace",
+  },
+  web: {
+    sans: "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
+    serif: "Georgia, 'Times New Roman', serif",
+    rounded: "'SF Pro Rounded', 'Hiragino Maru Gothic ProN', Meiryo, 'MS PGothic', sans-serif",
+    mono: "SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace",
+  },
+});
+```
+
+## Theme Hook
+
+Access theme values throughout the app:
+
+```tsx client/hooks/useTheme.ts
+import { Colors } from "@/constants/theme";
+import { useColorScheme } from "@/hooks/useColorScheme";
+
+export function useTheme() {
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === "dark";
+  const theme = Colors[colorScheme ?? "light"];
+
+  return {
+    theme,
+    isDark,
+  };
+}
+```
+
+<ParamField path="theme" type="object">
+  Current theme object with all color values
+</ParamField>
+<ParamField path="isDark" type="boolean">
+  Whether dark mode is active
+</ParamField>
+
+### Usage Example
+
+```tsx Using useTheme
+import { useTheme } from '@/hooks/useTheme';
+
+function MyComponent() {
+  const { theme, isDark } = useTheme();
+  
+  return (
+    <View style={{ backgroundColor: theme.backgroundRoot }}>
+      <Text style={{ color: theme.text }}>Hello World</Text>
+    </View>
+  );
+}
+```
+
+## Themed Components
+
+### ThemedView
+
+A View component that adapts to the current theme:
+
+```tsx client/components/ThemedView.tsx
+import { View, type ViewProps } from "react-native";
+import { useTheme } from "@/hooks/useTheme";
+
+export type ThemedViewProps = ViewProps & {
+  lightColor?: string;
+  darkColor?: string;
+};
+
+export function ThemedView({
+  style,
+  lightColor,
+  darkColor,
+  ...otherProps
+}: ThemedViewProps) {
+  const { theme, isDark } = useTheme();
+
+  const backgroundColor =
+    isDark && darkColor
+      ? darkColor
+      : !isDark && lightColor
+        ? lightColor
+        : theme.backgroundRoot;
+
+  return <View style={[{ backgroundColor }, style]} {...otherProps} />;
+}
+```
+
+<CodeGroup>
+```tsx Usage
+import { ThemedView } from '@/components/ThemedView';
+
+// Use theme default
+<ThemedView>
+  <Text>Content</Text>
+</ThemedView>
+
+// Override for light/dark
+<ThemedView 
+  lightColor="#FFFFFF" 
+  darkColor="#000000"
+>
+  <Text>Content</Text>
+</ThemedView>
+```
+</CodeGroup>
+
+### ThemedText
+
+A Text component with typography presets and theme support:
+
+```tsx client/components/ThemedText.tsx
+import { Text, type TextProps } from "react-native";
+import { useTheme } from "@/hooks/useTheme";
+import { Typography } from "@/constants/theme";
+
+export type ThemedTextProps = TextProps & {
+  lightColor?: string;
+  darkColor?: string;
+  type?: "h1" | "h2" | "h3" | "h4" | "body" | "small" | "link";
+};
+
+export function ThemedText({
+  style,
+  lightColor,
+  darkColor,
+  type = "body",
+  ...rest
+}: ThemedTextProps) {
+  const { theme, isDark } = useTheme();
+
+  const getColor = () => {
+    if (isDark && darkColor) {
+      return darkColor;
+    }
+    if (!isDark && lightColor) {
+      return lightColor;
+    }
+    if (type === "link") {
+      return theme.link;
+    }
+    return theme.text;
+  };
+
+  const getTypeStyle = () => {
+    switch (type) {
+      case "h1":
+        return Typography.h1;
+      case "h2":
+        return Typography.h2;
+      case "h3":
+        return Typography.h3;
+      case "h4":
+        return Typography.h4;
+      case "body":
+        return Typography.body;
+      case "small":
+        return Typography.small;
+      case "link":
+        return Typography.link;
+      default:
+        return Typography.body;
+    }
+  };
+
+  return (
+    <Text style={[{ color: getColor() }, getTypeStyle(), style]} {...rest} />
+  );
+}
+```
+
+<CodeGroup>
+```tsx Typography Variants
+import { ThemedText } from '@/components/ThemedText';
+
+<ThemedText type="h1">Main Heading</ThemedText>
+<ThemedText type="h2">Subheading</ThemedText>
+<ThemedText type="body">Body text</ThemedText>
+<ThemedText type="small">Small text</ThemedText>
+<ThemedText type="link">Link text</ThemedText>
+```
+</CodeGroup>
+
+## Color Scheme Detection
+
+### Native Detection
+
+```tsx client/hooks/useColorScheme.ts
+export { useColorScheme } from "react-native";
+```
+
+React Native provides built-in color scheme detection that responds to system changes.
+
+### Web Detection
+
+For web platform, a custom implementation might be needed:
+
+```tsx client/hooks/useColorScheme.web.ts
+import { useEffect, useState } from 'react';
+
+export function useColorScheme() {
+  const [colorScheme, setColorScheme] = useState<'light' | 'dark'>('light');
+  
+  useEffect(() => {
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    setColorScheme(mediaQuery.matches ? 'dark' : 'light');
+    
+    const handler = (e: MediaQueryListEvent) => {
+      setColorScheme(e.matches ? 'dark' : 'light');
+    };
+    
+    mediaQuery.addEventListener('change', handler);
+    return () => mediaQuery.removeEventListener('change', handler);
+  }, []);
+  
+  return colorScheme;
+}
+```
+
+## Dark Mode Best Practices
+
+<AccordionGroup>
+  <Accordion title="Use semantic color names">
+    Always use semantic names like `theme.text` instead of hardcoded colors. This ensures colors adapt properly.
+    
+    ```tsx
+    // Good
+    <Text style={{ color: theme.text }}>Hello</Text>
+    
+    // Bad
+    <Text style={{ color: '#000000' }}>Hello</Text>
+    ```
+  </Accordion>
+  
+  <Accordion title="Test both themes">
+    Always test your UI in both light and dark modes to ensure proper contrast and readability.
+  </Accordion>
+  
+  <Accordion title="Use ThemedView/ThemedText">
+    Prefer themed components over raw View/Text to automatically inherit theme colors.
+  </Accordion>
+  
+  <Accordion title="Adjust images for dark mode">
+    Consider providing dark variants of logos and illustrations:
+    
+    ```tsx
+    const logo = isDark ? require('./logo-dark.png') : require('./logo-light.png');
+    ```
+  </Accordion>
+  
+  <Accordion title="Mind the borders">
+    Borders can be too prominent in dark mode. Use lower opacity or subtle colors.
+  </Accordion>
+</AccordionGroup>
+
+## Platform-Specific Theming
+
+### iOS
+
+- Uses **system-ui** font family
+- Supports **dynamic type** (text size scaling)
+- Native **blur effects** integrate with theme
+- **Status bar** style automatically adjusts
+
+```tsx iOS Status Bar
+<StatusBar style="auto" /> // Automatically adapts to theme
+```
+
+### Android
+
+- Uses **Roboto** font family
+- **Material Design** elevation shadows
+- **Navigation bar** color coordination
+- **Splash screen** theme matching
+
+### Web
+
+- Uses **system font stack** for performance
+- Respects **prefers-color-scheme** media query
+- CSS **smooth transitions** between themes
+
+## Creating Custom Themes
+
+<Steps>
+  <Step title="Define color palette">
+    Add new colors to `Colors.light` and `Colors.dark` in `constants/theme.ts`
+  </Step>
+  
+  <Step title="Update TypeScript types">
+    Ensure type definitions match your color additions
+  </Step>
+  
+  <Step title="Use in components">
+    Access via `theme.yourNewColor` in components
+  </Step>
+  
+  <Step title="Test extensively">
+    Verify appearance in both light and dark modes
+  </Step>
+</Steps>
+
+```tsx Custom Theme Example
+// constants/theme.ts
+export const Colors = {
+  light: {
+    // ... existing colors
+    warning: "#FFA726", // Add new color
+  },
+  dark: {
+    // ... existing colors
+    warning: "#FF9800", // Dark mode variant
+  },
+};
+
+// Usage in component
+function WarningBanner() {
+  const { theme } = useTheme();
+  
+  return (
+    <View style={{ backgroundColor: theme.warning }}>
+      <Text>Warning!</Text>
+    </View>
+  );
+}
+```
+
+## Animation and Transitions
+
+<Note>
+Theme changes happen instantly by default. For smooth transitions, implement animation:
+</Note>
+
+```tsx Animated Theme Transition
+import { Animated } from 'react-native';
+
+function AnimatedThemedView({ children }) {
+  const { theme, isDark } = useTheme();
+  const animatedColor = useRef(new Animated.Value(isDark ? 1 : 0)).current;
+  
+  useEffect(() => {
+    Animated.timing(animatedColor, {
+      toValue: isDark ? 1 : 0,
+      duration: 300,
+      useNativeDriver: false,
+    }).start();
+  }, [isDark]);
+  
+  const backgroundColor = animatedColor.interpolate({
+    inputRange: [0, 1],
+    outputRange: [Colors.light.backgroundRoot, Colors.dark.backgroundRoot],
+  });
+  
+  return (
+    <Animated.View style={{ backgroundColor }}>
+      {children}
+    </Animated.View>
+  );
+}
+```
+
+## Accessibility Considerations
+
+<Warning>
+Always ensure sufficient color contrast (WCAG 2.1 Level AA minimum):
+- **Normal text**: 4.5:1 contrast ratio
+- **Large text**: 3:1 contrast ratio
+</Warning>
+
+```tsx Contrast Checker
+// Use tools like:
+// https://webaim.org/resources/contrastchecker/
+
+// Example: Check if text on background has sufficient contrast
+const hasGoodContrast = getContrastRatio(theme.text, theme.backgroundRoot) >= 4.5;
+```
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="Theme not updating on color scheme change">
+    Ensure you're using `useTheme()` hook instead of importing `Colors` directly:
+    
+    ```tsx
+    // Bad
+    import { Colors } from '@/constants/theme';
+    const color = Colors.light.text;
+    
+    // Good
+    const { theme } = useTheme();
+    const color = theme.text;
+    ```
+  </Accordion>
+  
+  <Accordion title="Flashing on theme change">
+    Implement animated transitions (see Animation section above)
+  </Accordion>
+  
+  <Accordion title="Inconsistent colors across screens">
+    Use themed components consistently. Avoid hardcoded colors.
+  </Accordion>
+</AccordionGroup>
+
+## Related Documentation
+
+<CardGroup cols={2}>
+  <Card title="Components" icon="cube" href="/components/overview">
+    Explore themed component implementations
+  </Card>
+  <Card title="Themed Components" icon="palette" href="/components/themed-components">
+    Learn about ThemedText and ThemedView components
+  </Card>
+</CardGroup>

@@ -1,80 +1,407 @@
 ---
-title: "Quickstart"
-description: "Start building awesome documentation in minutes"
+title: Quick Start
+description: Get Rippler running on your device in under 5 minutes with this step-by-step guide.
 ---
 
-## Get started in three steps
+## Get Started in 5 Minutes
 
-Get your documentation site running locally and make your first customization.
-
-### Step 1: Set up your local environment
-
-<AccordionGroup>
-  <Accordion icon="copy" title="Clone your docs locally">
-    During the onboarding process, you created a GitHub repository with your docs content if you didn't already have one. You can find a link to this repository in your [dashboard](https://dashboard.mintlify.com).
-    
-    To clone the repository locally so that you can make and preview changes to your docs, follow the [Cloning a repository](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository) guide in the GitHub docs.
-  </Accordion>
-  <Accordion icon="rectangle-terminal" title="Start the preview server">
-    1. Install the Mintlify CLI: `npm i -g mint`
-    2. Navigate to your docs directory and run: `mint dev`
-    3. Open `http://localhost:3000` to see your docs live!
-    
-    <Tip>Your preview updates automatically as you edit files.</Tip>
-  </Accordion>
-</AccordionGroup>
-
-### Step 2: Deploy your changes
-
-<AccordionGroup>
-  <Accordion icon="github" title="Install our GitHub app">
-    Install the Mintlify GitHub app from your [dashboard](https://dashboard.mintlify.com/settings/organization/github-app).
-    
-    Our GitHub app automatically deploys your changes to your docs site, so you don't need to manage deployments yourself.
-</Accordion>
-<Accordion icon="palette" title="Update your site name and colors">
-    For a first change, let's update the name and colors of your docs site.
-
-    1. Open `docs.json` in your editor.
-    2. Change the `"name"` field to your project name.
-    3. Update the `"colors"` to match your brand.
-    4. Save and see your changes instantly at `http://localhost:3000`.
-
-    <Tip>Try changing the primary color to see an immediate difference!</Tip>
-  </Accordion>
-</AccordionGroup>
-
-### Step 3: Go live
-
-<Accordion icon="rocket" title="Publish your docs">
-  1. Commit and push your changes.
-  2. Your docs will update and be live in moments!
-</Accordion>
-
-## Next steps
-
-Now that you have your docs running, explore these key features:
-
-<CardGroup cols={2}>
-
-<Card title="Write Content" icon="pen-to-square" href="/essentials/markdown">
-  Learn MDX syntax and start writing your documentation.
-</Card>
-
-<Card title="Customize style" icon="palette" href="/essentials/settings">
-  Make your docs match your brand perfectly.
-</Card>
-
-<Card title="Add code examples" icon="square-code" href="/essentials/code">
-  Include syntax-highlighted code blocks.
-</Card>
-
-<Card title="API documentation" icon="code" href="/api-reference/introduction">
-  Auto-generate API docs from OpenAPI specs.
-</Card>
-
-</CardGroup>
+This guide will get you from zero to running the Rippler app on your phone or simulator as quickly as possible. For a more detailed setup, see the [Installation guide](/installation).
 
 <Note>
-  **Need help?** See our [full documentation](https://mintlify.com/docs) or join our [community](https://mintlify.com/community).
+  **Prerequisites**: You need Node.js 18+ and npm installed. Check with `node --version` and `npm --version`.
 </Note>
+
+## Quick Setup
+
+<Steps>
+  <Step title="Clone and Install">
+    Clone the repository and install dependencies:
+
+    ```bash
+    git clone <repository-url>
+    cd rippler
+    npm install
+    ```
+
+    This will install all required packages including Expo, React Native, and dependencies.
+  </Step>
+
+  <Step title="Set Up Environment Variables">
+    Create a `.env` file in the project root:
+
+    ```bash .env
+    DATABASE_URL="postgresql://user:password@localhost:5432/rippler"
+    REPLIT_DEV_DOMAIN="your-domain.replit.dev"  # Optional, for Replit deployments
+    ```
+
+    <Warning>
+      If you don't have PostgreSQL running locally, you can skip database setup for now. The app will still work with AsyncStorage for workout logging.
+    </Warning>
+  </Step>
+
+  <Step title="Start the Development Server">
+    Run the Expo development server:
+
+    ```bash
+    npm run expo:dev
+    ```
+
+    This starts the Expo dev server with proper environment variables configured for React Native.
+
+    <CodeGroup>
+    ```bash Output
+    › Metro waiting on exp://192.168.1.100:8081
+    › Scan the QR code above with Expo Go (Android) or the Camera app (iOS)
+    
+    › Press a │ open Android
+    › Press i │ open iOS simulator
+    › Press w │ open web
+    ```
+    </CodeGroup>
+  </Step>
+
+  <Step title="Open on Your Device">
+    Choose how you want to run the app:
+
+    <Tabs>
+      <Tab title="Physical Device">
+        **iOS**:
+        1. Install **Expo Go** from the App Store
+        2. Open the Camera app
+        3. Scan the QR code in your terminal
+        4. Tap the notification to open in Expo Go
+
+        **Android**:
+        1. Install **Expo Go** from the Play Store
+        2. Open Expo Go
+        3. Tap "Scan QR Code"
+        4. Scan the QR code in your terminal
+      </Tab>
+
+      <Tab title="iOS Simulator">
+        Press **`i`** in the terminal to open iOS Simulator (macOS only).
+
+        <Note>
+          Requires Xcode installed. The simulator will launch automatically.
+        </Note>
+      </Tab>
+
+      <Tab title="Android Emulator">
+        Press **`a`** in the terminal to open Android Emulator.
+
+        <Note>
+          Requires Android Studio with an emulator configured. See [Installation guide](/installation) for setup.
+        </Note>
+      </Tab>
+
+      <Tab title="Web">
+        Press **`w`** in the terminal to open the web version in your browser.
+
+        <Warning>
+          Some features like haptic feedback won't work on web. Use a mobile device for the best experience.
+        </Warning>
+      </Tab>
+    </Tabs>
+  </Step>
+
+  <Step title="Explore the App">
+    You should now see the Rippler home screen with the 12-week program!
+
+    Try these actions:
+    - Navigate to **Program** tab to see all 12 weeks
+    - Tap any workout day to start logging
+    - Open **Goals** tab to set your 1RM targets
+    - Check **History** to see completed workouts
+  </Step>
+</Steps>
+
+## Understanding the App Structure
+
+Once the app is running, here's what you'll see:
+
+<Accordion title="Program Tab (Main Screen)">
+  The Program tab shows your current week with all scheduled training days:
+
+  ```tsx client/navigation/MainTabNavigator.tsx
+  <Tab.Screen
+    name="ProgramTab"
+    component={ProgramStackNavigator}
+    options={{
+      title: "Program",
+      tabBarIcon: ({ color, size }) => (
+        <Feather name="calendar" size={size} color={color} />
+      ),
+    }}
+  />
+  ```
+
+  - **Week selector** at the top (swipe or tap arrows)
+  - **4 workout cards** per week (Tuesday, Thursday, Saturday, Sunday)
+  - Tap any card to open the workout and start logging
+</Accordion>
+
+<Accordion title="Workout Screen">
+  The workout screen is where the magic happens:
+
+  ```tsx client/screens/WorkoutScreen.tsx
+  // Initialize workout with targets from program
+  const initializeLoggedWorkout = useCallback((): LoggedWorkout => {
+    return {
+      id: `${week}-${day}`,
+      week,
+      day,
+      dateLogged: new Date().toISOString(),
+      exercises: targetWorkout.exercises.map((ex, index) => {
+        const effective = getEffectiveTarget(ex, index);
+        const totalSets = typeof effective.sets === "number"
+          ? effective.sets
+          : parseInt(String(effective.sets).replace("+", ""), 10);
+
+        return {
+          tier: ex.tier,
+          exercise: ex.exercise,
+          sets: Array.from({ length: totalSets }, (_, i) => ({
+            setNumber: i + 1,
+            weight: "",
+            reps: "",
+            completed: false,
+          })),
+        };
+      }),
+      completed: false,
+    };
+  }, [week, day, targetWorkout, getEffectiveTarget]);
+  ```
+
+  Features:
+  - **Expandable exercise cards** with tier badges (T1, T2, T3)
+  - **Target weights/reps** calculated from your 1RM goals
+  - **Set-by-set logging** with weight and rep inputs
+  - **Progress bar** showing overall completion
+  - **Edit button** to modify targets on the fly
+</Accordion>
+
+<Accordion title="Goals Tab">
+  Set your training maxes for automatic weight calculations:
+
+  - Enter 1RM for Bench, Squat, Deadlift, OHP
+  - Weights automatically calculate for all exercises
+  - Changes apply to all future workouts
+  - Goals persist locally in AsyncStorage
+</Accordion>
+
+<Accordion title="History Tab">
+  View your complete training history:
+
+  - Calendar view with completed workout indicators
+  - Week-by-week progression
+  - Tap any past workout to review sets/reps
+</Accordion>
+
+## Development Workflow
+
+### Hot Reloading
+
+The app supports fast refresh. Make changes to any component and see them instantly:
+
+```tsx client/components/Button.tsx
+export function Button({ children, onPress, variant = "primary" }) {
+  return (
+    <Pressable
+      onPress={onPress}
+      style={({ pressed }) => [
+        styles.button,
+        variant === "primary" ? styles.primary : styles.secondary,
+        pressed && styles.pressed,
+      ]}
+    >
+      <ThemedText style={styles.buttonText}>{children}</ThemedText>
+    </Pressable>
+  );
+}
+```
+
+Change the button style and it updates immediately on your device.
+
+### Testing on Multiple Platforms
+
+Rippler runs on iOS, Android, and web from the same codebase:
+
+<CodeGroup>
+```bash iOS Simulator
+npm run expo:dev
+# Then press 'i' in terminal
+```
+
+```bash Android Emulator
+npm run expo:dev
+# Then press 'a' in terminal
+```
+
+```bash Web Browser
+npm run expo:dev
+# Then press 'w' in terminal
+```
+</CodeGroup>
+
+### TypeScript Support
+
+The app is fully typed with TypeScript. Hover over any component for type information:
+
+```tsx client/types/workout.ts
+export interface WorkoutDay {
+  week: number;
+  day: string;
+  dateSerial: number;
+  exercises: TargetExercise[];
+}
+
+export interface TargetExercise {
+  tier: string;
+  exercise: string;
+  weight: number | string;
+  reps: number | string;
+  sets: number | string;
+}
+
+export interface LoggedSet {
+  setNumber: number;
+  weight: string;
+  reps: string;
+  completed: boolean;
+}
+```
+
+## Running the Backend (Optional)
+
+If you want to test the full stack with database persistence:
+
+<Steps>
+  <Step title="Start PostgreSQL">
+    Make sure PostgreSQL is running and create the database:
+
+    ```bash
+    createdb rippler
+    ```
+  </Step>
+
+  <Step title="Run Migrations">
+    Push the database schema:
+
+    ```bash
+    npm run db:push
+    ```
+  </Step>
+
+  <Step title="Start the Server">
+    Run the Express server in development mode:
+
+    ```bash
+    npm run server:dev
+    ```
+
+    The server starts on port 5000 by default.
+  </Step>
+</Steps>
+
+## Common Issues
+
+<AccordionGroup>
+  <Accordion title="Module not found: @/components/..." icon="triangle-exclamation">
+    This is a path alias issue. Make sure your `babel.config.js` is correct:
+
+    ```js babel.config.js
+    module.exports = function (api) {
+      api.cache(true);
+      return {
+        presets: ["babel-preset-expo"],
+        plugins: [
+          [
+            "module-resolver",
+            {
+              root: ["./"],
+              alias: {
+                "@": "./client",
+                "@shared": "./shared",
+              },
+            },
+          ],
+          "react-native-reanimated/plugin",
+        ],
+      };
+    };
+    ```
+
+    Then restart the dev server with `npm run expo:dev`.
+  </Accordion>
+
+  <Accordion title="Expo Go not connecting" icon="mobile-screen">
+    Make sure your phone and computer are on the same WiFi network.
+
+    If that doesn't work, try:
+    ```bash
+    npx expo start --tunnel
+    ```
+
+    This uses a cloud tunnel to connect.
+  </Accordion>
+
+  <Accordion title="Database connection error" icon="database">
+    If you see database errors, check your `.env` file:
+
+    ```bash
+    # Make sure DATABASE_URL is correct
+    DATABASE_URL="postgresql://user:password@localhost:5432/rippler"
+    ```
+
+    Or skip the database entirely - the app works with AsyncStorage only.
+  </Accordion>
+
+  <Accordion title="Android emulator not opening" icon="android">
+    Make sure you have Android Studio installed and an emulator configured.
+
+    List available emulators:
+    ```bash
+    emulator -list-avds
+    ```
+
+    Create one if needed through Android Studio > AVD Manager.
+  </Accordion>
+</AccordionGroup>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card
+    title="Full Installation Guide"
+    icon="book"
+    href="/installation"
+  >
+    Set up your complete development environment with all tools
+  </Card>
+  <Card
+    title="Architecture Overview"
+    icon="sitemap"
+    href="/architecture/overview"
+  >
+    Understand how Rippler is built and how the pieces fit together
+  </Card>
+  <Card
+    title="Program Management"
+    icon="pen-to-square"
+    href="/features/program-management"
+  >
+    Learn how to manage and customize workout programs
+  </Card>
+  <Card
+    title="API Reference"
+    icon="code"
+    href="/api/storage/overview"
+  >
+    Explore the storage APIs, hooks, and type definitions
+  </Card>
+</CardGroup>
+
+<Check>
+  **You're all set!** The app should be running and you can start exploring the codebase. Make changes and see them update in real-time with Fast Refresh.
+</Check>

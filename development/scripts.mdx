@@ -1,0 +1,482 @@
+---
+title: Available Scripts
+description: Complete reference of all npm scripts and commands available in the Rippler project
+---
+
+## Overview
+
+The Rippler project includes various npm scripts for development, building, testing, and deployment. All scripts are defined in `package.json` and can be run using `npm run <script-name>`.
+
+## Development Scripts
+
+Scripts for local development and testing.
+
+### expo:dev
+
+```bash
+npm run expo:dev
+```
+
+Starts the Expo development server with Replit-specific environment configuration.
+
+<Accordion title="Full Command">
+```bash
+EXPO_PACKAGER_PROXY_URL=https://$REPLIT_DEV_DOMAIN \
+REACT_NATIVE_PACKAGER_HOSTNAME=$REPLIT_DEV_DOMAIN \
+EXPO_PUBLIC_DOMAIN=$REPLIT_DEV_DOMAIN:5000 \
+npx expo start --localhost
+```
+</Accordion>
+
+<Note>
+  This command sets up environment variables for Replit deployment:
+  - `EXPO_PACKAGER_PROXY_URL` - Proxy URL for the Metro bundler
+  - `REACT_NATIVE_PACKAGER_HOSTNAME` - Hostname for the packager
+  - `EXPO_PUBLIC_DOMAIN` - Public domain for API connections
+</Note>
+
+**When to use:**
+- Local mobile app development
+- Testing on physical devices or emulators
+- Hot reload during feature development
+
+### server:dev
+
+```bash
+npm run server:dev
+```
+
+Runs the Express backend server in development mode using `tsx` for TypeScript execution.
+
+<Accordion title="Full Command">
+```bash
+NODE_ENV=development tsx server/index.ts
+```
+</Accordion>
+
+**Features:**
+- Hot reload on file changes
+- Development environment configuration
+- Enhanced error messages
+- Request logging enabled
+
+**When to use:**
+- Backend API development
+- Database operation testing
+- Full-stack development (run alongside `expo:dev`)
+
+## Build Scripts
+
+Scripts for creating production-ready builds.
+
+### expo:start:static:build
+
+```bash
+npm run expo:start:static:build
+```
+
+Starts the Expo Metro bundler in production mode for static builds.
+
+<Accordion title="Full Command">
+```bash
+npx expo start --no-dev --minify --localhost
+```
+</Accordion>
+
+**Options:**
+- `--no-dev` - Disables development mode
+- `--minify` - Enables code minification
+- `--localhost` - Serves on localhost only
+
+**When to use:**
+- Used internally by `expo:static:build`
+- Not typically run directly
+
+### expo:static:build
+
+```bash
+npm run expo:static:build
+```
+
+Builds static Expo bundles for iOS and Android platforms.
+
+<Accordion title="Full Command">
+```bash
+node scripts/build.js
+```
+</Accordion>
+
+**What it does:**
+
+<Steps>
+  <Step title="Prepares build directories">
+    Creates timestamped build directories and cleans previous builds
+  </Step>
+  
+  <Step title="Clears Metro cache">
+    Removes cached Metro bundler files for a clean build
+  </Step>
+  
+  <Step title="Starts Metro bundler">
+    Launches the Metro server in production mode
+  </Step>
+  
+  <Step title="Downloads bundles">
+    Fetches minified iOS and Android JavaScript bundles
+  </Step>
+  
+  <Step title="Downloads manifests">
+    Retrieves platform-specific Expo manifests
+  </Step>
+  
+  <Step title="Processes assets">
+    Extracts and downloads all app assets (images, fonts, etc.)
+  </Step>
+  
+  <Step title="Updates URLs">
+    Modifies bundle and manifest URLs for deployment
+  </Step>
+</Steps>
+
+**Output:**
+```
+static-build/
+├── <timestamp>/
+│   └── _expo/static/js/
+│       ├── ios/bundle.js
+│       ├── android/bundle.js
+│       └── assets/
+├── ios/manifest.json
+└── android/manifest.json
+```
+
+**When to use:**
+- Production deployments
+- Creating standalone bundles
+- Deploying to Replit or similar platforms
+
+### server:build
+
+```bash
+npm run server:build
+```
+
+Builds the Express server using esbuild for production deployment.
+
+<Accordion title="Full Command">
+```bash
+esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=server_dist
+```
+</Accordion>
+
+**esbuild options:**
+- `--platform=node` - Target Node.js environment
+- `--packages=external` - Keep npm packages external
+- `--bundle` - Bundle all code into single file
+- `--format=esm` - Output ES modules
+- `--outdir=server_dist` - Output to `server_dist/` directory
+
+**Output:** `server_dist/index.js`
+
+**When to use:**
+- Production server deployments
+- Optimizing server bundle size
+- Before running `server:prod`
+
+### server:prod
+
+```bash
+npm run server:prod
+```
+
+Runs the production-built server.
+
+<Accordion title="Full Command">
+```bash
+NODE_ENV=production node server_dist/index.js
+```
+</Accordion>
+
+<Warning>
+  You must run `npm run server:build` before running this command.
+</Warning>
+
+**When to use:**
+- Production deployments
+- After building with `server:build`
+- Performance testing with optimized code
+
+## Database Scripts
+
+### db:push
+
+```bash
+npm run db:push
+```
+
+Pushes database schema changes to PostgreSQL using Drizzle Kit.
+
+<Accordion title="Full Command">
+```bash
+drizzle-kit push
+```
+</Accordion>
+
+**What it does:**
+- Reads schema from `shared/schema.ts`
+- Compares with current database state
+- Generates and executes SQL to sync schema
+- Updates database to match schema definitions
+
+**Prerequisites:**
+- `DATABASE_URL` environment variable must be set
+- PostgreSQL database must be accessible
+
+**When to use:**
+- After modifying `shared/schema.ts`
+- Setting up a new development environment
+- Syncing database schema changes
+
+<Note>
+  This command directly modifies the database without creating migration files. For production, consider using `drizzle-kit generate` to create migrations first.
+</Note>
+
+## Code Quality Scripts
+
+### lint
+
+```bash
+npm run lint
+```
+
+Runs ESLint to check for code quality issues.
+
+<Accordion title="Full Command">
+```bash
+npx expo lint
+```
+</Accordion>
+
+**Checks for:**
+- Code style violations
+- Potential bugs
+- Best practice violations
+- Prettier formatting issues
+
+**Configuration:** Uses `eslint.config.js` with Expo and Prettier presets
+
+**When to use:**
+- Before committing code
+- In CI/CD pipelines
+- During code review
+
+### lint:fix
+
+```bash
+npm run lint:fix
+```
+
+Automatically fixes ESLint issues where possible.
+
+<Accordion title="Full Command">
+```bash
+npx expo lint --fix
+```
+</Accordion>
+
+**What it fixes:**
+- Formatting issues
+- Auto-fixable ESLint rules
+- Import ordering
+- Trailing whitespace
+
+<Note>
+  Not all issues can be auto-fixed. Manual intervention may be required for some violations.
+</Note>
+
+**When to use:**
+- Before committing code
+- After major refactoring
+- To quickly clean up formatting
+
+### check:types
+
+```bash
+npm run check:types
+```
+
+Runs TypeScript compiler to check for type errors without emitting files.
+
+<Accordion title="Full Command">
+```bash
+tsc --noEmit
+```
+</Accordion>
+
+**Checks for:**
+- Type mismatches
+- Missing type annotations
+- Invalid type assertions
+- Unused variables (with strict mode)
+
+**When to use:**
+- Before building for production
+- In CI/CD pipelines
+- During development to catch type errors early
+
+### check:format
+
+```bash
+npm run check:format
+```
+
+Checks if code is formatted according to Prettier rules.
+
+<Accordion title="Full Command">
+```bash
+prettier --check "**/*.{js,ts,tsx,css,json}"
+```
+</Accordion>
+
+**Checked file types:**
+- JavaScript (`.js`)
+- TypeScript (`.ts`, `.tsx`)
+- CSS (`.css`)
+- JSON (`.json`)
+
+**Exit codes:**
+- `0` - All files are formatted correctly
+- `1` - Some files need formatting
+
+**When to use:**
+- In CI/CD pipelines
+- Pre-commit hooks
+- Before code review
+
+### format
+
+```bash
+npm run format
+```
+
+Automatically formats all code according to Prettier rules.
+
+<Accordion title="Full Command">
+```bash
+prettier --write "**/*.{js,ts,tsx,css,json}"
+```
+</Accordion>
+
+**What it formats:**
+- Indentation (2 spaces)
+- Line length (80 characters)
+- Quotes (double quotes)
+- Semicolons
+- Trailing commas
+
+**When to use:**
+- Before committing code
+- After adding new files
+- To maintain consistent code style
+
+## Common Workflows
+
+### Full-Stack Development
+
+```bash
+# Terminal 1: Start the Expo development server
+npm run expo:dev
+
+# Terminal 2: Start the backend server
+npm run server:dev
+```
+
+### Code Quality Check
+
+```bash
+# Run all quality checks
+npm run check:types
+npm run lint
+npm run check:format
+```
+
+### Production Build
+
+```bash
+# Build the static Expo bundles
+npm run expo:static:build
+
+# Build the server
+npm run server:build
+
+# Run the production server
+npm run server:prod
+```
+
+### Pre-Commit Workflow
+
+```bash
+# Format code
+npm run format
+
+# Fix linting issues
+npm run lint:fix
+
+# Check types
+npm run check:types
+```
+
+## Environment Variables
+
+Key environment variables used by these scripts:
+
+<ParamField path="DATABASE_URL" type="string" required>
+  PostgreSQL connection string for Drizzle ORM
+  
+  Example: `postgresql://user:password@localhost:5432/rippler`
+</ParamField>
+
+<ParamField path="REPLIT_DEV_DOMAIN" type="string">
+  Replit development domain (automatically set on Replit)
+</ParamField>
+
+<ParamField path="EXPO_PUBLIC_DOMAIN" type="string">
+  Public domain for API connections (used by Expo client)
+</ParamField>
+
+<ParamField path="NODE_ENV" type="string">
+  Node environment: `development` or `production`
+</ParamField>
+
+<ParamField path="PORT" type="string">
+  Server port (defaults to 5000)
+</ParamField>
+
+## Script Chaining
+
+You can chain multiple scripts using `&&`:
+
+```bash
+# Format, lint, and type check in one command
+npm run format && npm run lint:fix && npm run check:types
+
+# Build both client and server
+npm run expo:static:build && npm run server:build
+```
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Setup Guide" icon="rocket" href="/development/setup">
+    Set up your development environment
+  </Card>
+  <Card title="Project Structure" icon="folder-tree" href="/development/project-structure">
+    Understand the codebase layout
+  </Card>
+  <Card title="Testing" icon="flask" href="/development/testing">
+    Learn about testing approaches
+  </Card>
+  <Card title="Architecture" icon="cloud" href="/architecture/overview">
+    Learn about Rippler's architecture
+  </Card>
+</CardGroup>

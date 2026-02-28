@@ -1,0 +1,536 @@
+---
+title: Target Override Storage
+description: Functions for customizing weight, rep, and set targets for specific workout days while maintaining program structure
+---
+
+## Overview
+
+Target override storage functions allow users to customize specific workout targets for any day in the Rippler program. Instead of following the default program prescription, users can set custom weights, reps, or sets for individual exercises on specific days.
+
+## Storage Key
+
+<ResponseField name="@rippler/target_overrides" type="string">
+  Stores a JSON-serialized array of TargetOverride objects
+</ResponseField>
+
+## Use Cases
+
+Target overrides are useful when:
+
+- Adjusting for injuries or limitations
+- Implementing custom periodization strategies
+- Testing new rep ranges or weight progressions
+- Accommodating equipment availability
+- Fine-tuning program intensity
+
+## Functions
+
+### getTargetOverrides
+
+Retrieves all target overrides from storage.
+
+```typescript
+async function getTargetOverrides(): Promise<TargetOverride[]>
+```
+
+<ResponseField name="return" type="TargetOverride[]">
+  Array of all target overrides, or empty array if none exist
+</ResponseField>
+
+**Example**
+
+```typescript
+import { getTargetOverrides } from '@/lib/storage';
+
+const overrides = await getTargetOverrides();
+console.log(overrides);
+// [
+//   {
+//     week: 1,
+//     day: 'Monday',
+//     exerciseIndex: 0,
+//     weight: 225,
+//     reps: 6,
+//     sets: 4
+//   }
+// ]
+```
+
+**Source Code Reference**
+
+See implementation at `lib/storage.ts:138-149`
+
+---
+
+### saveTargetOverride
+
+Saves or updates a target override for a specific exercise on a specific day. Uses upsert logic based on week, day, and exerciseIndex.
+
+```typescript
+async function saveTargetOverride(override: TargetOverride): Promise<void>
+```
+
+<ParamField path="override" type="TargetOverride" required>
+  The target override object containing week, day, exerciseIndex, and optional weight/reps/sets
+</ParamField>
+
+<Info>
+  Overrides are matched by the combination of week, day, and exerciseIndex. If a match exists, it's updated; otherwise, a new override is created.
+</Info>
+
+**Example**
+
+```typescript
+import { saveTargetOverride } from '@/lib/storage';
+
+// Override the first exercise on Week 1 Monday
+const override: TargetOverride = {
+  week: 1,
+  day: 'Monday',
+  exerciseIndex: 0,  // First exercise in the day
+  weight: 225,        // Custom weight
+  reps: 6,           // Custom reps
+  sets: 4            // Custom sets
+};
+
+await saveTargetOverride(override);
+```
+
+**Partial Overrides**
+
+You can override just weight, just reps, or just sets:
+
+```typescript
+// Only override weight, keep default reps and sets
+await saveTargetOverride({
+  week: 2,
+  day: 'Wednesday',
+  exerciseIndex: 1,
+  weight: 185  // Only weight is overridden
+});
+```
+
+**Source Code Reference**
+
+See implementation at `lib/storage.ts:151-169`
+
+---
+
+### getTargetOverride
+
+Retrieves a specific target override for a given week, day, and exercise index.
+
+```typescript
+async function getTargetOverride(
+  week: number,
+  day: string,
+  exerciseIndex: number
+): Promise<TargetOverride | null>
+```
+
+<ParamField path="week" type="number" required>
+  The week number in the program (1-16)
+</ParamField>
+
+<ParamField path="day" type="string" required>
+  The day name (e.g., "Monday", "Wednesday", "Friday")
+</ParamField>
+
+<ParamField path="exerciseIndex" type="number" required>
+  The zero-based index of the exercise in the day's exercise list
+</ParamField>
+
+<ResponseField name="return" type="TargetOverride | null">
+  The target override if found, or null if no override exists
+</ResponseField>
+
+<Tip>
+  Use this function before displaying a workout to check if any exercises have custom targets.
+</Tip>
+
+**Example**
+
+```typescript
+import { getTargetOverride } from '@/lib/storage';
+
+// Check if first exercise on Week 1 Monday has an override
+const override = await getTargetOverride(1, 'Monday', 0);
+
+if (override) {
+  console.log('Custom targets found:');
+  if (override.weight) console.log(`Weight: ${override.weight}`);
+  if (override.reps) console.log(`Reps: ${override.reps}`);
+  if (override.sets) console.log(`Sets: ${override.sets}`);
+} else {
+  console.log('Using default program targets');
+}
+```
+
+**Source Code Reference**
+
+See implementation at `lib/storage.ts:171-182`
+
+---
+
+### getTargetOverridesForDay
+
+Retrieves all target overrides for a specific week and day.
+
+```typescript
+async function getTargetOverridesForDay(
+  week: number,
+  day: string
+): Promise<TargetOverride[]>
+```
+
+<ParamField path="week" type="number" required>
+  The week number in the program (1-16)
+</ParamField>
+
+<ParamField path="day" type="string" required>
+  The day name (e.g., "Monday", "Wednesday", "Friday")
+</ParamField>
+
+<ResponseField name="return" type="TargetOverride[]">
+  Array of all overrides for that day, or empty array if none exist
+</ResponseField>
+
+**Example**
+
+```typescript
+import { getTargetOverridesForDay } from '@/lib/storage';
+
+// Get all overrides for Week 1 Monday
+const overrides = await getTargetOverridesForDay(1, 'Monday');
+
+console.log(`${overrides.length} exercise(s) have custom targets`);
+
+overrides.forEach((override) => {
+  console.log(`Exercise ${override.exerciseIndex}: Custom targets applied`);
+});
+```
+
+**Source Code Reference**
+
+See implementation at `lib/storage.ts:184-190`
+
+---
+
+## Data Type
+
+```typescript
+export interface TargetOverride {
+  week: number;              // Program week (1-16)
+  day: string;               // Day name (e.g., "Monday")
+  exerciseIndex: number;     // Zero-based exercise index in the day
+  weight?: number | string;  // Custom weight (optional)
+  reps?: number | string;    // Custom reps (optional)
+  sets?: number | string;    // Custom sets (optional)
+}
+```
+
+<Info>
+  All target fields (weight, reps, sets) are optional. This allows you to override just one parameter while keeping the others at their default values.
+</Info>
+
+## Common Patterns
+
+### Applying Overrides to Workout Display
+
+```typescript
+import { getTargetOverridesForDay } from '@/lib/storage';
+import { TargetExercise } from '@/types/workout';
+
+async function getWorkoutWithOverrides(
+  week: number,
+  day: string,
+  defaultExercises: TargetExercise[]
+): Promise<TargetExercise[]> {
+  const overrides = await getTargetOverridesForDay(week, day);
+
+  return defaultExercises.map((exercise, index) => {
+    const override = overrides.find(o => o.exerciseIndex === index);
+    
+    if (override) {
+      return {
+        ...exercise,
+        weight: override.weight ?? exercise.weight,
+        reps: override.reps ?? exercise.reps,
+        sets: override.sets ?? exercise.sets
+      };
+    }
+    
+    return exercise;
+  });
+}
+
+// Usage
+const workoutExercises = await getWorkoutWithOverrides(1, 'Monday', defaultExercises);
+```
+
+### Creating an Override Editor
+
+```typescript
+import { saveTargetOverride, getTargetOverride } from '@/lib/storage';
+import { useState, useEffect } from 'react';
+
+function ExerciseOverrideEditor({
+  week,
+  day,
+  exerciseIndex,
+  defaultTargets
+}: {
+  week: number;
+  day: string;
+  exerciseIndex: number;
+  defaultTargets: TargetExercise;
+}) {
+  const [weight, setWeight] = useState(defaultTargets.weight.toString());
+  const [reps, setReps] = useState(defaultTargets.reps.toString());
+  const [sets, setSets] = useState(defaultTargets.sets.toString());
+
+  useEffect(() => {
+    loadOverride();
+  }, [week, day, exerciseIndex]);
+
+  async function loadOverride() {
+    const override = await getTargetOverride(week, day, exerciseIndex);
+    if (override) {
+      if (override.weight) setWeight(override.weight.toString());
+      if (override.reps) setReps(override.reps.toString());
+      if (override.sets) setSets(override.sets.toString());
+    }
+  }
+
+  async function handleSave() {
+    await saveTargetOverride({
+      week,
+      day,
+      exerciseIndex,
+      weight: Number(weight),
+      reps: Number(reps),
+      sets: Number(sets)
+    });
+  }
+
+  return (
+    <View>
+      <TextInput
+        value={weight}
+        onChangeText={setWeight}
+        placeholder="Weight"
+      />
+      <TextInput
+        value={reps}
+        onChangeText={setReps}
+        placeholder="Reps"
+      />
+      <TextInput
+        value={sets}
+        onChangeText={setSets}
+        placeholder="Sets"
+      />
+      <Button title="Save Override" onPress={handleSave} />
+    </View>
+  );
+}
+```
+
+### Deleting an Override
+
+```typescript
+import { getTargetOverrides, saveTargetOverrides } from '@/lib/storage';
+
+async function deleteTargetOverride(
+  week: number,
+  day: string,
+  exerciseIndex: number
+) {
+  const overrides = await getTargetOverrides();
+  const filtered = overrides.filter(
+    (o) => !(o.week === week && o.day === day && o.exerciseIndex === exerciseIndex)
+  );
+  
+  // Save filtered list back
+  await AsyncStorage.setItem(
+    '@rippler/target_overrides',
+    JSON.stringify(filtered)
+  );
+}
+
+// Usage
+await deleteTargetOverride(1, 'Monday', 0);
+```
+
+### Bulk Override Application
+
+```typescript
+import { saveTargetOverride } from '@/lib/storage';
+
+async function applyDeloadWeek(week: number, days: string[]) {
+  const deloadPercentage = 0.6; // 60% of normal weight
+  
+  for (const day of days) {
+    // Assuming 4 exercises per day
+    for (let i = 0; i < 4; i++) {
+      await saveTargetOverride({
+        week,
+        day,
+        exerciseIndex: i,
+        weight: `${deloadPercentage * 100}%` // Store as percentage
+      });
+    }
+  }
+}
+
+// Usage - apply deload to week 8
+await applyDeloadWeek(8, ['Monday', 'Wednesday', 'Friday']);
+```
+
+### Showing Override Indicators in UI
+
+```typescript
+import { getTargetOverride } from '@/lib/storage';
+
+function ExerciseCard({
+  exercise,
+  week,
+  day,
+  exerciseIndex
+}: {
+  exercise: TargetExercise;
+  week: number;
+  day: string;
+  exerciseIndex: number;
+}) {
+  const [hasOverride, setHasOverride] = useState(false);
+
+  useEffect(() => {
+    checkOverride();
+  }, [week, day, exerciseIndex]);
+
+  async function checkOverride() {
+    const override = await getTargetOverride(week, day, exerciseIndex);
+    setHasOverride(override !== null);
+  }
+
+  return (
+    <View>
+      <Text>{exercise.exercise}</Text>
+      {hasOverride && (
+        <Badge>Custom Targets</Badge>
+      )}
+      <Text>{exercise.sets} x {exercise.reps} @ {exercise.weight}</Text>
+    </View>
+  );
+}
+```
+
+### Comparing Override to Default
+
+```typescript
+import { getTargetOverride } from '@/lib/storage';
+import { TargetExercise } from '@/types/workout';
+
+async function compareToDefault(
+  week: number,
+  day: string,
+  exerciseIndex: number,
+  defaultExercise: TargetExercise
+) {
+  const override = await getTargetOverride(week, day, exerciseIndex);
+  
+  if (!override) {
+    return { hasOverride: false };
+  }
+
+  return {
+    hasOverride: true,
+    weightDiff: override.weight ? Number(override.weight) - Number(defaultExercise.weight) : 0,
+    repsDiff: override.reps ? Number(override.reps) - Number(defaultExercise.reps) : 0,
+    setsDiff: override.sets ? Number(override.sets) - Number(defaultExercise.sets) : 0
+  };
+}
+
+// Usage
+const comparison = await compareToDefault(1, 'Monday', 0, defaultExercise);
+if (comparison.hasOverride) {
+  console.log(`Weight: ${comparison.weightDiff > 0 ? '+' : ''}${comparison.weightDiff} lbs`);
+}
+```
+
+## Best Practices
+
+<AccordionGroup>
+  <Accordion title="Use exerciseIndex consistently">
+    Exercise indices are zero-based and correspond to the order of exercises in the workout day array.
+    
+    ```typescript
+    const exercises = [
+      { tier: 'T1', exercise: 'Squat', ... },      // index 0
+      { tier: 'T2', exercise: 'Romanian DL', ... }, // index 1
+      { tier: 'T3a', exercise: 'Leg Press', ... }   // index 2
+    ];
+    
+    // Override the second exercise
+    await saveTargetOverride({
+      week: 1,
+      day: 'Monday',
+      exerciseIndex: 1,  // Romanian DL
+      weight: 185
+    });
+    ```
+  </Accordion>
+
+  <Accordion title="Preserve program structure">
+    Overrides should adjust intensity, not fundamentally change the program structure.
+    
+    ```typescript
+    // Good - reasonable adjustment
+    await saveTargetOverride({
+      week: 1,
+      day: 'Monday',
+      exerciseIndex: 0,
+      weight: 225  // Reduced from 245 due to fatigue
+    });
+    
+    // Be careful - major changes might break periodization
+    await saveTargetOverride({
+      week: 1,
+      day: 'Monday',
+      exerciseIndex: 0,
+      sets: 10  // Default is 3-5, this is very different
+    });
+    ```
+  </Accordion>
+
+  <Accordion title="Document why overrides were applied">
+    Consider adding a notes system to track why overrides were made.
+    
+    ```typescript
+    // Extended TargetOverride with notes (custom implementation)
+    interface ExtendedOverride extends TargetOverride {
+      notes?: string;
+    }
+    
+    await saveTargetOverride({
+      week: 3,
+      day: 'Friday',
+      exerciseIndex: 0,
+      weight: 185,
+      notes: 'Reduced due to lower back tightness'
+    });
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Related Functions
+
+<CardGroup cols={2}>
+  <Card title="getLoggedWorkoutForDay" icon="clipboard-list" href="/api/storage/workouts#getloggedworkoutforday">
+    Check actual performance vs. overridden targets
+  </Card>
+  <Card title="getCurrentWeek" icon="calendar" href="/api/storage/workouts#getcurrentweek">
+    Get current week for override context
+  </Card>
+</CardGroup>

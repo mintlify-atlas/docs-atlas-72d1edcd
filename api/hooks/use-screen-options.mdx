@@ -1,0 +1,376 @@
+---
+title: useScreenOptions
+description: Generate platform-aware navigation options with automatic theme support
+---
+
+The `useScreenOptions` hook provides a convenient way to generate React Navigation screen options that automatically adapt to the current theme and platform. It returns a configuration object optimized for native feel with blur effects on iOS and solid backgrounds on Android and web.
+
+## Usage
+
+```tsx
+import { useScreenOptions } from "@/hooks/useScreenOptions";
+
+export function WorkoutScreen() {
+  const screenOptions = useScreenOptions();
+
+  return (
+    <Stack.Screen
+      name="Workout"
+      options={screenOptions}
+    />
+  );
+}
+```
+
+## Parameters
+
+<ParamField path="transparent" type="boolean" default={true}>
+  Controls whether the header should be transparent. When `true`, the header will use blur effects (on iOS) or transparent backgrounds. When `false`, the header will have a solid background color.
+  
+  ```tsx
+  // Transparent header with blur (default)
+  const options = useScreenOptions();
+  
+  // Solid header background
+  const options = useScreenOptions({ transparent: false });
+  ```
+</ParamField>
+
+## Return Value
+
+Returns a `NativeStackNavigationOptions` object with the following properties:
+
+<ResponseField name="headerTitleAlign" type="'center'" required>
+  Aligns the header title to the center of the navigation bar.
+</ResponseField>
+
+<ResponseField name="headerTransparent" type="boolean" required>
+  Controls header transparency. Set to the value of the `transparent` parameter (defaults to `true`).
+</ResponseField>
+
+<ResponseField name="headerBlurEffect" type="'light' | 'dark'" required>
+  The blur effect style for iOS headers. Automatically set to `"dark"` in dark mode and `"light"` in light mode.
+</ResponseField>
+
+<ResponseField name="headerTintColor" type="string" required>
+  The color for header text and icons. Automatically set to `theme.text` to match the current theme.
+</ResponseField>
+
+<ResponseField name="headerStyle" type="object" required>
+  Platform-specific header background styles:
+  - **iOS**: `undefined` (allows blur effect to show through)
+  - **Android**: `theme.backgroundRoot` (solid background)
+  - **Web**: `theme.backgroundRoot` (solid background)
+</ResponseField>
+
+<ResponseField name="gestureEnabled" type="boolean" required>
+  Enables swipe-back gesture navigation. Always set to `true`.
+</ResponseField>
+
+<ResponseField name="gestureDirection" type="'horizontal'" required>
+  Sets the direction of swipe gestures to horizontal (left-to-right for back navigation).
+</ResponseField>
+
+<ResponseField name="fullScreenGestureEnabled" type="boolean" required>
+  Controls full-screen gesture support. Automatically disabled when liquid glass effect is available, enabled otherwise.
+</ResponseField>
+
+<ResponseField name="contentStyle" type="object" required>
+  Styles for the screen content container. Sets `backgroundColor` to `theme.backgroundRoot` for consistent theming.
+</ResponseField>
+
+## Platform-Specific Behavior
+
+<Tabs>
+  <Tab title="iOS">
+    On iOS, the hook creates a native-feeling navigation experience with:
+    
+    - **Transparent headers** with blur effects that adapt to light/dark mode
+    - **Centered titles** matching iOS design guidelines
+    - **Swipe-back gestures** enabled for natural navigation
+    - **Theme-aware tint colors** for navigation elements
+    
+    ```tsx
+    {
+      headerTransparent: true,
+      headerBlurEffect: isDark ? "dark" : "light", // Native iOS blur
+      headerStyle: { backgroundColor: undefined }, // Allow blur to show
+    }
+    ```
+  </Tab>
+  
+  <Tab title="Android">
+    On Android, headers use solid backgrounds for better compatibility:
+    
+    - **Solid background color** from the current theme
+    - **Centered titles** for consistency with iOS
+    - **Horizontal gestures** for back navigation
+    - **Theme-aware colors** for text and icons
+    
+    ```tsx
+    {
+      headerTransparent: true, // Can still be transparent
+      headerStyle: { backgroundColor: theme.backgroundRoot }, // Solid color
+    }
+    ```
+  </Tab>
+  
+  <Tab title="Web">
+    On web, the hook provides a similar experience to Android:
+    
+    - **Solid backgrounds** from the current theme
+    - **Centered titles** for consistency
+    - **Gesture support** where applicable
+    - **Responsive theming** that updates with system preferences
+    
+    ```tsx
+    {
+      headerStyle: { backgroundColor: theme.backgroundRoot },
+      contentStyle: { backgroundColor: theme.backgroundRoot },
+    }
+    ```
+  </Tab>
+</Tabs>
+
+## Examples
+
+### Basic Stack Navigator
+
+```tsx
+import { createNativeStackNavigator } from "@react-navigation/native-stack";
+import { useScreenOptions } from "@/hooks/useScreenOptions";
+
+const Stack = createNativeStackNavigator();
+
+export function AppNavigator() {
+  const screenOptions = useScreenOptions();
+
+  return (
+    <Stack.Navigator screenOptions={screenOptions}>
+      <Stack.Screen name="Home" component={HomeScreen} />
+      <Stack.Screen name="Workout" component={WorkoutScreen} />
+      <Stack.Screen name="Profile" component={ProfileScreen} />
+    </Stack.Navigator>
+  );
+}
+```
+
+### Solid Header Background
+
+```tsx
+import { useScreenOptions } from "@/hooks/useScreenOptions";
+
+export function SettingsNavigator() {
+  const solidHeaderOptions = useScreenOptions({ transparent: false });
+
+  return (
+    <Stack.Navigator screenOptions={solidHeaderOptions}>
+      <Stack.Screen 
+        name="Settings" 
+        component={SettingsScreen}
+        options={{ title: "Settings" }}
+      />
+    </Stack.Navigator>
+  );
+}
+```
+
+### Mixed Screen Options
+
+```tsx
+import { useScreenOptions } from "@/hooks/useScreenOptions";
+
+export function MixedNavigator() {
+  const defaultOptions = useScreenOptions(); // Transparent by default
+  const solidOptions = useScreenOptions({ transparent: false });
+
+  return (
+    <Stack.Navigator screenOptions={defaultOptions}>
+      {/* This screen uses transparent header with blur */}
+      <Stack.Screen 
+        name="Home" 
+        component={HomeScreen}
+      />
+      
+      {/* This screen overrides with solid header */}
+      <Stack.Screen 
+        name="Details" 
+        component={DetailsScreen}
+        options={solidOptions}
+      />
+    </Stack.Navigator>
+  );
+}
+```
+
+### Custom Screen Options with Base
+
+```tsx
+import { useScreenOptions } from "@/hooks/useScreenOptions";
+import { NativeStackNavigationOptions } from "@react-navigation/native-stack";
+
+export function WorkoutScreen() {
+  const baseOptions = useScreenOptions();
+  
+  const customOptions: NativeStackNavigationOptions = {
+    ...baseOptions,
+    title: "My Workout",
+    headerRight: () => <SaveButton />,
+    headerLeft: () => <BackButton />,
+  };
+
+  return (
+    <Stack.Screen 
+      name="Workout" 
+      options={customOptions}
+    />
+  );
+}
+```
+
+### Per-Screen Dynamic Options
+
+```tsx
+import { useLayoutEffect } from "react";
+import { useNavigation } from "@react-navigation/native";
+import { useScreenOptions } from "@/hooks/useScreenOptions";
+
+export function DynamicScreen() {
+  const navigation = useNavigation();
+  const screenOptions = useScreenOptions({ transparent: false });
+  
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      ...screenOptions,
+      title: "Dynamic Title",
+      headerRight: () => <ActionButton />,
+    });
+  }, [navigation, screenOptions]);
+
+  return <View>{/* Screen content */}</View>;
+}
+```
+
+### Nested Navigators
+
+```tsx
+import { createNativeStackNavigator } from "@react-navigation/native-stack";
+import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
+import { useScreenOptions } from "@/hooks/useScreenOptions";
+
+const Stack = createNativeStackNavigator();
+const Tab = createBottomTabNavigator();
+
+function TabNavigator() {
+  return (
+    <Tab.Navigator>
+      <Tab.Screen name="Workouts" component={WorkoutsScreen} />
+      <Tab.Screen name="Progress" component={ProgressScreen} />
+    </Tab.Navigator>
+  );
+}
+
+export function RootNavigator() {
+  const screenOptions = useScreenOptions();
+
+  return (
+    <Stack.Navigator screenOptions={screenOptions}>
+      <Stack.Screen 
+        name="Main" 
+        component={TabNavigator}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen name="WorkoutDetail" component={WorkoutDetailScreen} />
+    </Stack.Navigator>
+  );
+}
+```
+
+## When to Use
+
+<CardGroup cols={2}>
+  <Card title="Stack Navigators" icon="layer-group">
+    Use for all stack navigators to ensure consistent, theme-aware navigation headers across your app.
+  </Card>
+  
+  <Card title="Platform Optimization" icon="mobile-screen">
+    Automatically handles platform-specific optimizations like iOS blur effects and Android solid backgrounds.
+  </Card>
+  
+  <Card title="Theme Integration" icon="palette">
+    Ensures navigation elements update automatically when the user switches between light and dark mode.
+  </Card>
+  
+  <Card title="Native Feel" icon="star">
+    Provides gestures and visual effects that feel native on each platform without manual configuration.
+  </Card>
+</CardGroup>
+
+## Best Practices
+
+<AccordionGroup>
+  <Accordion title="Use at Navigator Level">
+    Apply `useScreenOptions` at the navigator level using `screenOptions` prop for consistency:
+    
+    ```tsx
+    const screenOptions = useScreenOptions();
+    
+    <Stack.Navigator screenOptions={screenOptions}>
+      {/* All screens inherit these options */}
+    </Stack.Navigator>
+    ```
+  </Accordion>
+  
+  <Accordion title="Override When Needed">
+    Individual screens can override specific options while preserving the base configuration:
+    
+    ```tsx
+    <Stack.Screen 
+      name="Special"
+      options={{
+        ...screenOptions,
+        title: "Special Title",
+        headerRight: () => <CustomButton />
+      }}
+    />
+    ```
+  </Accordion>
+  
+  <Accordion title="Transparent vs. Solid Headers">
+    Use transparent headers for content that scrolls under the header (like lists), and solid headers for static content:
+    
+    ```tsx
+    // Transparent for scrollable content
+    const listOptions = useScreenOptions({ transparent: true });
+    
+    // Solid for forms and static screens
+    const formOptions = useScreenOptions({ transparent: false });
+    ```
+  </Accordion>
+  
+  <Accordion title="Consider Liquid Glass Effect">
+    The hook automatically disables full-screen gestures when the liquid glass effect is available to prevent gesture conflicts:
+    
+    ```tsx
+    fullScreenGestureEnabled: isLiquidGlassAvailable() ? false : true
+    ```
+    
+    This is handled automatically, but be aware when designing gesture-heavy interfaces.
+  </Accordion>
+</AccordionGroup>
+
+<Note>
+  The hook uses `useTheme` internally, so the navigation options automatically update when the system color scheme changes. You don't need to manually handle theme updates.
+</Note>
+
+## Related Hooks
+
+<CardGroup cols={2}>
+  <Card title="useTheme" icon="palette" href="/api/hooks/use-theme">
+    Access theme colors and dark mode state (used internally by useScreenOptions)
+  </Card>
+  
+  <Card title="useColorScheme" icon="circle-half-stroke" href="/api/hooks/use-color-scheme">
+    Get the raw color scheme value
+  </Card>
+</CardGroup>

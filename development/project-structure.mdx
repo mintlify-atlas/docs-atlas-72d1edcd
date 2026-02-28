@@ -1,0 +1,344 @@
+---
+title: Project Structure
+description: Overview of the Rippler codebase organization and architecture
+---
+
+## Project Overview
+
+Rippler is a full-stack React Native application built with Expo. The project follows a monorepo-style structure with separate client and server directories, sharing common code through a `shared` directory.
+
+## Directory Structure
+
+```
+source/
+├── client/              # React Native mobile app
+│   ├── components/      # Reusable UI components
+│   ├── constants/       # App-wide constants and theme
+│   ├── data/            # Static data and program definitions
+│   ├── hooks/           # Custom React hooks
+│   ├── lib/             # Utility libraries
+│   ├── navigation/      # Navigation configuration
+│   ├── screens/         # Screen components
+│   ├── types/           # TypeScript type definitions
+│   ├── App.tsx          # Root application component
+│   └── index.js         # Entry point
+├── server/              # Express backend server
+│   ├── templates/       # HTML templates
+│   ├── index.ts         # Server entry point
+│   ├── routes.ts        # API route definitions
+│   └── storage.ts       # Database operations
+├── shared/              # Shared code between client/server
+│   └── schema.ts        # Drizzle ORM schema definitions
+├── scripts/             # Build and automation scripts
+│   └── build.js         # Static build script for Expo
+├── assets/              # Static assets (images, fonts)
+│   └── images/          # App icons and images
+├── migrations/          # Database migration files
+├── app.json             # Expo configuration
+├── babel.config.js      # Babel configuration
+├── drizzle.config.ts    # Drizzle ORM configuration
+├── eslint.config.js     # ESLint configuration
+├── package.json         # Dependencies and scripts
+└── tsconfig.json        # TypeScript configuration
+```
+
+## Core Directories
+
+### Client Directory
+
+The `client/` directory contains all React Native mobile application code.
+
+<AccordionGroup>
+  <Accordion title="components/" icon="layer-group">
+    Reusable UI components used throughout the app:
+    
+    - `Button.tsx` - Custom button component
+    - `Card.tsx` - Card container component
+    - `DayCard.tsx` - Day-specific workout card
+    - `EmptyState.tsx` - Empty state placeholder
+    - `ErrorBoundary.tsx` - Error boundary wrapper
+    - `ErrorFallback.tsx` - Error fallback UI
+    - `ExerciseCard.tsx` - Exercise display card
+    - `HeaderTitle.tsx` - Custom navigation header
+    - `KeyboardAwareScrollViewCompat.tsx` - Keyboard-aware scrolling
+    - `SetRow.tsx` - Individual set row component
+    - `Spacer.tsx` - Spacing utility component
+    - `ThemedText.tsx` - Theme-aware text component
+    - `ThemedView.tsx` - Theme-aware view component
+    - `TierBadge.tsx` - Tier indicator badge
+    - `WeekSelector.tsx` - Week selection component
+  </Accordion>
+
+  <Accordion title="constants/" icon="gear">
+    Application-wide constants:
+    
+    - `theme.ts` - Color palette and theme definitions for light/dark modes
+  </Accordion>
+
+  <Accordion title="data/" icon="database">
+    Static data and program definitions:
+    
+    - `exercise-percentages.ts` - Exercise intensity percentages for each tier
+    - `rippler-program.ts` - Complete Rippler program structure and workouts
+  </Accordion>
+
+  <Accordion title="hooks/" icon="hook">
+    Custom React hooks:
+    
+    - `useColorScheme.ts` - Color scheme detection hook
+    - `useColorScheme.web.ts` - Web-specific color scheme hook
+    - `useScreenOptions.ts` - Navigation screen options hook
+    - `useTheme.ts` - Theme access hook
+  </Accordion>
+
+  <Accordion title="lib/" icon="toolbox">
+    Utility libraries and configurations:
+    
+    - `query-client.ts` - TanStack Query client setup
+    - `storage.ts` - AsyncStorage wrapper for local data persistence
+  </Accordion>
+
+  <Accordion title="navigation/" icon="compass">
+    Navigation structure using React Navigation:
+    
+    - `RootStackNavigator.tsx` - Root stack navigator
+    - `MainTabNavigator.tsx` - Main tab navigation
+    - `MainTabNavigator26.tsx` - Alternative tab navigator
+    - `ProgramStackNavigator.tsx` - Program screen stack
+    - `ExercisesStackNavigator.tsx` - Exercises screen stack
+    - `HistoryStackNavigator.tsx` - History screen stack
+    - `GoalsStackNavigator.tsx` - Goals screen stack
+  </Accordion>
+
+  <Accordion title="screens/" icon="window">
+    Main screen components:
+    
+    - `ProgramScreen.tsx` - Program overview and week selection
+    - `WorkoutScreen.tsx` - Individual workout tracking
+    - `ExercisesScreen.tsx` - Exercise library and management
+    - `HistoryScreen.tsx` - Workout history
+    - `GoalsScreen.tsx` - Goal setting and tracking
+  </Accordion>
+
+  <Accordion title="types/" icon="code">
+    TypeScript type definitions:
+    
+    - `workout.ts` - Workout-related type definitions
+  </Accordion>
+</AccordionGroup>
+
+### Server Directory
+
+The `server/` directory contains the Express.js backend:
+
+<CardGroup cols={2}>
+  <Card title="index.ts" icon="server">
+    Main server entry point with Express configuration, CORS setup, request logging, and Expo manifest serving
+  </Card>
+  <Card title="routes.ts" icon="route">
+    API route definitions and handlers for workout data management
+  </Card>
+  <Card title="storage.ts" icon="database">
+    Database operations and Drizzle ORM queries
+  </Card>
+  <Card title="templates/" icon="file-code">
+    HTML templates for the landing page and web views
+  </Card>
+</CardGroup>
+
+### Shared Directory
+
+The `shared/` directory contains code used by both client and server:
+
+```typescript shared/schema.ts
+import { pgTable, text, varchar } from "drizzle-orm/pg-core";
+
+export const users = pgTable("users", {
+  id: varchar("id").primaryKey(),
+  username: text("username").notNull().unique(),
+  password: text("password").notNull(),
+});
+```
+
+This includes:
+- Database schema definitions using Drizzle ORM
+- Zod validation schemas
+- Shared TypeScript types
+
+## Architecture Patterns
+
+### Component Architecture
+
+<Steps>
+  <Step title="Themed Components">
+    All UI components use themed variants (`ThemedText`, `ThemedView`) to support light/dark mode automatically.
+  </Step>
+
+  <Step title="Composition">
+    Complex screens are composed from smaller, reusable components. For example, `WorkoutScreen` uses `ExerciseCard`, which uses `SetRow`.
+  </Step>
+
+  <Step title="Error Boundaries">
+    The app is wrapped in an `ErrorBoundary` component to gracefully handle runtime errors.
+  </Step>
+</Steps>
+
+### State Management
+
+<CardGroup cols={2}>
+  <Card title="TanStack Query" icon="arrows-rotate">
+    Server state and data fetching managed with TanStack Query (React Query)
+  </Card>
+  <Card title="AsyncStorage" icon="hard-drive">
+    Local persistence using React Native AsyncStorage for offline data
+  </Card>
+  <Card title="React Navigation" icon="route">
+    Navigation state managed by React Navigation
+  </Card>
+  <Card title="React State" icon="react">
+    Component-level state using React hooks (useState, useReducer)
+  </Card>
+</CardGroup>
+
+### Navigation Structure
+
+The app uses a nested navigation structure:
+
+```
+RootStackNavigator
+└── MainTabNavigator
+    ├── ProgramStackNavigator
+    │   ├── ProgramScreen
+    │   └── WorkoutScreen
+    ├── ExercisesStackNavigator
+    │   └── ExercisesScreen
+    ├── HistoryStackNavigator
+    │   └── HistoryScreen
+    └── GoalsStackNavigator
+        └── GoalsScreen
+```
+
+## Configuration Files
+
+### TypeScript Configuration
+
+```json tsconfig.json
+{
+  "extends": "expo/tsconfig.base.json",
+  "compilerOptions": {
+    "strict": true,
+    "esModuleInterop": true,
+    "paths": {
+      "@/*": ["./client/*"],
+      "@shared/*": ["./shared/*"]
+    },
+    "types": ["node"]
+  }
+}
+```
+
+Key features:
+- Extends Expo's base configuration
+- Strict type checking enabled
+- Path aliases for cleaner imports
+
+### Babel Configuration
+
+```javascript babel.config.js
+module.exports = {
+  presets: ["babel-preset-expo"],
+  plugins: [
+    ["module-resolver", {
+      alias: {
+        "@": "./client",
+        "@shared": "./shared"
+      }
+    }],
+    "react-native-reanimated/plugin"
+  ]
+};
+```
+
+Configures:
+- Expo preset for React Native
+- Module resolver for path aliases
+- Reanimated plugin for animations
+
+### Expo Configuration
+
+The `app.json` file configures:
+- App name: "Rippler"
+- Bundle identifiers for iOS/Android
+- Splash screen settings
+- New Architecture enabled
+- React Compiler experiments enabled
+
+### Drizzle Configuration
+
+```typescript drizzle.config.ts
+export default defineConfig({
+  out: "./migrations",
+  schema: "./shared/schema.ts",
+  dialect: "postgresql",
+  dbCredentials: {
+    url: process.env.DATABASE_URL,
+  },
+});
+```
+
+## Import Path Aliases
+
+The project uses path aliases to simplify imports:
+
+<CodeGroup>
+```typescript Import from client
+// Instead of: import { Button } from '../../components/Button';
+import { Button } from '@/components/Button';
+```
+
+```typescript Import from shared
+// Instead of: import { users } from '../../shared/schema';
+import { users } from '@shared/schema';
+```
+</CodeGroup>
+
+## Key Dependencies
+
+### Frontend
+
+- **React Native**: 0.81.5
+- **React**: 19.1.0
+- **Expo**: ~54.x
+- **React Navigation**: ~7.x
+- **TanStack Query**: ~5.90
+- **Drizzle ORM**: ~0.39
+
+### Backend
+
+- **Express**: ~5.0
+- **PostgreSQL** (pg): ~8.16
+- **Drizzle ORM**: ~0.39
+
+### Development Tools
+
+- **TypeScript**: ~5.9
+- **ESLint**: ~9.25
+- **Prettier**: ~3.6
+- **tsx**: ~4.20 (TypeScript execution)
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Setup Guide" icon="rocket" href="/development/setup">
+    Set up your development environment
+  </Card>
+  <Card title="Available Scripts" icon="terminal" href="/development/scripts">
+    Learn about npm scripts
+  </Card>
+  <Card title="Program Management" icon="book" href="/features/program-management">
+    Understand the Rippler program structure
+  </Card>
+  <Card title="API Reference" icon="code" href="/api/storage/overview">
+    Explore storage APIs and type definitions
+  </Card>
+</CardGroup>

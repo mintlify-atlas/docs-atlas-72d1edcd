@@ -1,0 +1,148 @@
+---
+title: Component Library Overview
+description: A comprehensive overview of Rippler's UI component library built with React Native and Expo
+---
+
+# Component Library Overview
+
+Rippler's component library provides a collection of reusable, theme-aware UI components built with React Native and Expo. All components are designed to work seamlessly across iOS, Android, and web platforms.
+
+## Component Categories
+
+### Core Components
+
+The foundation of Rippler's UI system:
+
+- **[Button](/components/button)** - Animated pressable button with primary and secondary variants
+- **[Card](/components/card)** - Flexible container component with elevation system
+- **[ThemedText & ThemedView](/components/themed-components)** - Theme-aware text and view primitives
+
+### Workout Components
+
+Specialized components for workout tracking:
+
+- **[ExerciseCard](/components/exercise-card)** - Displays exercise information with tier badges and progress tracking
+- **[SetRow](/components/set-row)** - Interactive row for logging weight, reps, and set completion
+
+## Design Principles
+
+### Theme Integration
+
+All components integrate with Rippler's theme system using the `useTheme` hook:
+
+```tsx
+import { useTheme } from "@/hooks/useTheme";
+
+function MyComponent() {
+  const { theme } = useTheme();
+  return <View style={{ backgroundColor: theme.backgroundRoot }} />;
+}
+```
+
+### Animation
+
+Components use `react-native-reanimated` for performant animations:
+
+- **Spring animations** for natural, physics-based motion
+- **Scale effects** on press interactions
+- **Shared values** for optimal performance
+
+### Accessibility
+
+All interactive components include:
+
+- Proper touch targets (minimum 40x40 points)
+- Visual feedback on press
+- Haptic feedback on supported platforms
+- Test IDs for automated testing
+
+## Common Patterns
+
+### Spring Configuration
+
+Most components use a consistent spring configuration:
+
+```tsx
+const springConfig: WithSpringConfig = {
+  damping: 15,
+  mass: 0.3,
+  stiffness: 150,
+  overshootClamping: true,
+  energyThreshold: 0.001,
+};
+```
+
+### Press Animations
+
+Standard press animation pattern:
+
+```tsx
+const scale = useSharedValue(1);
+
+const handlePressIn = () => {
+  scale.value = withSpring(0.98, springConfig);
+};
+
+const handlePressOut = () => {
+  scale.value = withSpring(1, springConfig);
+};
+```
+
+### Theme Constants
+
+Components use centralized theme constants:
+
+```tsx
+import { Spacing, BorderRadius } from "@/constants/theme";
+
+const styles = StyleSheet.create({
+  container: {
+    padding: Spacing.lg,
+    borderRadius: BorderRadius.sm,
+  },
+});
+```
+
+## Component Architecture
+
+### File Structure
+
+All components are located in `/client/components/`:
+
+```
+components/
+├── Button.tsx
+├── Card.tsx
+├── ThemedText.tsx
+├── ThemedView.tsx
+├── ExerciseCard.tsx
+├── SetRow.tsx
+└── TierBadge.tsx
+```
+
+### Import Pattern
+
+Components use path aliases for clean imports:
+
+```tsx
+import { Button } from "@/components/Button";
+import { ThemedText } from "@/components/ThemedText";
+import { useTheme } from "@/hooks/useTheme";
+```
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Button Component" icon="hand-pointer" href="/components/button">
+    Learn about the animated button component
+  </Card>
+  <Card title="Card Component" icon="window-maximize" href="/components/card">
+    Explore the flexible card container
+  </Card>
+  <Card title="Themed Components" icon="palette" href="/components/themed-components">
+    Understand theme-aware primitives
+  </Card>
+  <Card title="Exercise Components" icon="dumbbell" href="/components/exercise-card">
+    Discover workout-specific components
+  </Card>
+</CardGroup>

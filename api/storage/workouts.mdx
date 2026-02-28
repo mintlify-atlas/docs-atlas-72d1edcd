@@ -1,0 +1,403 @@
+---
+title: Workout Storage
+description: Functions for logging and retrieving completed workout sessions with detailed exercise and set tracking
+---
+
+## Overview
+
+Workout storage functions handle the persistence of completed training sessions. Each logged workout contains detailed information about exercises performed, including set-by-set tracking of weights, reps, and completion status.
+
+## Storage Key
+
+<ResponseField name="@rippler/logged_workouts" type="string">
+  Stores the JSON-serialized array of LoggedWorkout objects
+</ResponseField>
+
+<ResponseField name="@rippler/current_week" type="string">
+  Stores the user's current week number in the program as a string
+</ResponseField>
+
+## Functions
+
+### getLoggedWorkouts
+
+Retrieves all logged workouts from storage.
+
+```typescript
+async function getLoggedWorkouts(): Promise<LoggedWorkout[]>
+```
+
+<ResponseField name="return" type="LoggedWorkout[]">
+  Array of all logged workouts, or empty array if none exist or an error occurs
+</ResponseField>
+
+**Example**
+
+```typescript
+import { getLoggedWorkouts } from '@/lib/storage';
+
+const workouts = await getLoggedWorkouts();
+console.log(workouts);
+// [
+//   {
+//     id: 'workout_123',
+//     week: 1,
+//     day: 'Monday',
+//     dateLogged: '2026-02-28',
+//     exercises: [...],
+//     completed: true
+//   }
+// ]
+```
+
+**Source Code Reference**
+
+See implementation at `lib/storage.ts:71-82`
+
+---
+
+### saveLoggedWorkout
+
+Saves or updates a logged workout. If a workout with the same ID already exists, it will be updated; otherwise, a new workout is added.
+
+```typescript
+async function saveLoggedWorkout(workout: LoggedWorkout): Promise<void>
+```
+
+<ParamField path="workout" type="LoggedWorkout" required>
+  The complete logged workout object to save
+</ParamField>
+
+<Info>
+  This function uses upsert logic: existing workouts (matched by ID) are updated, while new workouts are appended to the array.
+</Info>
+
+**Example**
+
+```typescript
+import { saveLoggedWorkout } from '@/lib/storage';
+
+const workout: LoggedWorkout = {
+  id: `workout_${Date.now()}`,
+  week: 1,
+  day: 'Monday',
+  dateLogged: new Date().toISOString().split('T')[0],
+  completed: true,
+  exercises: [
+    {
+      tier: 'T1',
+      exercise: 'Squat',
+      sets: [
+        { setNumber: 1, weight: 225, reps: 5, completed: true },
+        { setNumber: 2, weight: 225, reps: 5, completed: true },
+        { setNumber: 3, weight: 225, reps: 5, completed: true }
+      ],
+      notes: 'Felt strong today'
+    }
+  ]
+};
+
+await saveLoggedWorkout(workout);
+```
+
+**Source Code Reference**
+
+See implementation at `lib/storage.ts:84-97`
+
+---
+
+### deleteLoggedWorkout
+
+Removes a logged workout from storage by ID.
+
+```typescript
+async function deleteLoggedWorkout(id: string): Promise<void>
+```
+
+<ParamField path="id" type="string" required>
+  The unique ID of the workout to delete
+</ParamField>
+
+<Warning>
+  Deleted workouts cannot be recovered. Consider implementing a confirmation dialog before deletion.
+</Warning>
+
+**Example**
+
+```typescript
+import { deleteLoggedWorkout } from '@/lib/storage';
+
+await deleteLoggedWorkout('workout_1234567890');
+```
+
+**Source Code Reference**
+
+See implementation at `lib/storage.ts:99-107`
+
+---
+
+### getLoggedWorkoutForDay
+
+Retrieves the logged workout for a specific week and day combination.
+
+```typescript
+async function getLoggedWorkoutForDay(
+  week: number,
+  day: string
+): Promise<LoggedWorkout | null>
+```
+
+<ParamField path="week" type="number" required>
+  The week number in the program (1-16)
+</ParamField>
+
+<ParamField path="day" type="string" required>
+  The day name (e.g., "Monday", "Wednesday", "Friday")
+</ParamField>
+
+<ResponseField name="return" type="LoggedWorkout | null">
+  The logged workout if found, or null if no workout exists for that week/day
+</ResponseField>
+
+**Example**
+
+```typescript
+import { getLoggedWorkoutForDay } from '@/lib/storage';
+
+const workout = await getLoggedWorkoutForDay(1, 'Monday');
+
+if (workout) {
+  console.log(`Workout completed on ${workout.dateLogged}`);
+  console.log(`Exercises logged: ${workout.exercises.length}`);
+} else {
+  console.log('No workout logged for Week 1 Monday');
+}
+```
+
+<Tip>
+  Use this function to check if a user has already completed a specific day before showing the workout template.
+</Tip>
+
+**Source Code Reference**
+
+See implementation at `lib/storage.ts:109-115`
+
+---
+
+### getCurrentWeek
+
+Retrieves the user's current week in the Rippler program.
+
+```typescript
+async function getCurrentWeek(): Promise<number>
+```
+
+<ResponseField name="return" type="number">
+  Current week number (defaults to 1 if not set)
+</ResponseField>
+
+**Example**
+
+```typescript
+import { getCurrentWeek } from '@/lib/storage';
+
+const week = await getCurrentWeek();
+console.log(`You are on week ${week} of 16`);
+```
+
+**Source Code Reference**
+
+See implementation at `lib/storage.ts:117-128`
+
+---
+
+### setCurrentWeek
+
+Updates the user's current week in the program.
+
+```typescript
+async function setCurrentWeek(week: number): Promise<void>
+```
+
+<ParamField path="week" type="number" required>
+  The week number to set (typically 1-16 for the Rippler program)
+</ParamField>
+
+**Example**
+
+```typescript
+import { setCurrentWeek } from '@/lib/storage';
+
+// Advance to week 2
+await setCurrentWeek(2);
+```
+
+**Source Code Reference**
+
+See implementation at `lib/storage.ts:130-136`
+
+---
+
+## Data Types
+
+### LoggedWorkout
+
+```typescript
+export interface LoggedWorkout {
+  id: string;              // Unique identifier
+  week: number;            // Program week number
+  day: string;             // Day name (e.g., "Monday")
+  dateLogged: string;      // ISO date string
+  exercises: LoggedExercise[];
+  completed: boolean;      // Whether entire workout was completed
+}
+```
+
+### LoggedExercise
+
+```typescript
+export interface LoggedExercise {
+  tier: Tier;              // 'T1', 'T2', 'T3a', or 'T3b'
+  exercise: string;        // Exercise name
+  sets: LoggedSet[];       // Array of sets performed
+  notes?: string;          // Optional notes about performance
+}
+```
+
+### LoggedSet
+
+```typescript
+export interface LoggedSet {
+  setNumber: number;       // Set number (1, 2, 3, etc.)
+  weight: number | string; // Weight used
+  reps: number | string;   // Reps completed
+  completed: boolean;      // Whether the set was completed
+}
+```
+
+## Common Patterns
+
+### Building a Workout Logging Form
+
+```typescript
+import { saveLoggedWorkout, getCurrentWeek } from '@/lib/storage';
+import { useState } from 'react';
+
+function WorkoutLogger({ day, exercises }) {
+  const [loggedSets, setLoggedSets] = useState<LoggedExercise[]>([]);
+
+  async function handleSave() {
+    const week = await getCurrentWeek();
+    
+    const workout: LoggedWorkout = {
+      id: `workout_${Date.now()}`,
+      week,
+      day,
+      dateLogged: new Date().toISOString().split('T')[0],
+      exercises: loggedSets,
+      completed: true
+    };
+
+    await saveLoggedWorkout(workout);
+  }
+
+  return (
+    <View>
+      {/* Render logging UI */}
+      <Button title="Save Workout" onPress={handleSave} />
+    </View>
+  );
+}
+```
+
+### Checking if Day is Complete
+
+```typescript
+import { getLoggedWorkoutForDay, getCurrentWeek } from '@/lib/storage';
+
+async function isDayComplete(day: string): Promise<boolean> {
+  const week = await getCurrentWeek();
+  const workout = await getLoggedWorkoutForDay(week, day);
+  return workout?.completed ?? false;
+}
+
+// Usage
+const mondayComplete = await isDayComplete('Monday');
+if (mondayComplete) {
+  console.log('You already completed Monday this week!');
+}
+```
+
+### Calculating Weekly Statistics
+
+```typescript
+import { getLoggedWorkouts, getCurrentWeek } from '@/lib/storage';
+
+async function getWeeklyStats(week: number) {
+  const allWorkouts = await getLoggedWorkouts();
+  const weekWorkouts = allWorkouts.filter(w => w.week === week);
+  
+  const totalSets = weekWorkouts.reduce((sum, workout) => {
+    return sum + workout.exercises.reduce((exerciseSum, ex) => {
+      return exerciseSum + ex.sets.filter(s => s.completed).length;
+    }, 0);
+  }, 0);
+
+  return {
+    workoutsCompleted: weekWorkouts.length,
+    totalSets,
+    daysLogged: weekWorkouts.map(w => w.day)
+  };
+}
+
+// Usage
+const currentWeek = await getCurrentWeek();
+const stats = await getWeeklyStats(currentWeek);
+console.log(`This week: ${stats.workoutsCompleted} workouts, ${stats.totalSets} sets`);
+```
+
+### Progress Through Program
+
+```typescript
+import { getCurrentWeek, setCurrentWeek } from '@/lib/storage';
+
+async function advanceWeek() {
+  const current = await getCurrentWeek();
+  const next = current + 1;
+  
+  if (next <= 16) {
+    await setCurrentWeek(next);
+    console.log(`Advanced to week ${next}`);
+  } else {
+    console.log('Program complete!');
+  }
+}
+```
+
+### Exporting Workout History
+
+```typescript
+import { getLoggedWorkouts } from '@/lib/storage';
+import * as FileSystem from 'expo-file-system';
+import * as Sharing from 'expo-sharing';
+
+async function exportWorkouts() {
+  const workouts = await getLoggedWorkouts();
+  const json = JSON.stringify(workouts, null, 2);
+  
+  const fileUri = `${FileSystem.documentDirectory}workouts.json`;
+  await FileSystem.writeAsStringAsync(fileUri, json);
+  await Sharing.shareAsync(fileUri);
+}
+```
+
+## Related Functions
+
+<CardGroup cols={2}>
+  <Card title="getTargetOverridesForDay" icon="sliders" href="/api/storage/overrides#gettargetoverridesforday">
+    Get custom targets for a specific workout day
+  </Card>
+  <Card title="getExercises" icon="dumbbell" href="/api/storage/exercises#getexercises">
+    Load exercise library for workout logging
+  </Card>
+</CardGroup>

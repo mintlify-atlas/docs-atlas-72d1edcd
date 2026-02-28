@@ -1,0 +1,261 @@
+---
+title: Development Environment Setup
+description: Set up your local development environment for the Rippler workout tracker app
+---
+
+## Prerequisites
+
+Before you begin, ensure you have the following installed on your system:
+
+<CardGroup cols={2}>
+  <Card title="Node.js" icon="node-js">
+    Version 18.x or higher recommended
+  </Card>
+  <Card title="npm" icon="box">
+    Comes bundled with Node.js
+  </Card>
+  <Card title="Expo CLI" icon="mobile">
+    For React Native development
+  </Card>
+  <Card title="PostgreSQL" icon="database">
+    Required for the backend database
+  </Card>
+</CardGroup>
+
+## Initial Setup
+
+<Steps>
+  <Step title="Clone the repository">
+    Clone the Rippler source code to your local machine:
+    
+    ```bash
+    git clone <repository-url>
+    cd source
+    ```
+  </Step>
+
+  <Step title="Install dependencies">
+    Install all project dependencies using npm:
+    
+    ```bash
+    npm install
+    ```
+    
+    This will install both production and development dependencies including:
+    - React Native and Expo framework
+    - Express server dependencies
+    - Drizzle ORM for database management
+    - TypeScript and linting tools
+  </Step>
+
+  <Step title="Configure environment variables">
+    Set up your environment variables for database connection:
+    
+    ```bash
+    export DATABASE_URL="postgresql://user:password@localhost:5432/rippler"
+    ```
+    
+    <Note>
+      The `DATABASE_URL` is required for Drizzle ORM to connect to your PostgreSQL database.
+    </Note>
+  </Step>
+
+  <Step title="Initialize the database">
+    Push the database schema to your PostgreSQL instance:
+    
+    ```bash
+    npm run db:push
+    ```
+    
+    This uses Drizzle Kit to create the necessary tables based on the schema defined in `shared/schema.ts`.
+  </Step>
+</Steps>
+
+## Development Environment Options
+
+### Expo Development (Mobile)
+
+For React Native mobile development, use the Expo development server:
+
+```bash
+npm run expo:dev
+```
+
+This command:
+- Starts the Expo development server
+- Enables hot reload for rapid development
+- Sets up proxy URLs for Replit environment (if applicable)
+- Allows testing on physical devices or emulators
+
+<Note>
+  The development server includes special environment variables for Replit deployment:
+  - `EXPO_PACKAGER_PROXY_URL`
+  - `REACT_NATIVE_PACKAGER_HOSTNAME`
+  - `EXPO_PUBLIC_DOMAIN`
+</Note>
+
+### Backend Development
+
+Run the Express server in development mode:
+
+```bash
+npm run server:dev
+```
+
+This uses `tsx` to run TypeScript files directly with hot reload enabled.
+
+### Running Both Concurrently
+
+For full-stack development, you'll need to run both the Expo client and the backend server in separate terminal windows:
+
+<CodeGroup>
+```bash Terminal 1 - Expo
+npm run expo:dev
+```
+
+```bash Terminal 2 - Server
+npm run server:dev
+```
+</CodeGroup>
+
+## IDE Setup
+
+### VS Code Recommended Extensions
+
+<CardGroup cols={2}>
+  <Card title="ESLint" icon="code">
+    Lint your code with the Expo ESLint configuration
+  </Card>
+  <Card title="Prettier" icon="brush">
+    Format code automatically on save
+  </Card>
+  <Card title="TypeScript" icon="t">
+    Enhanced TypeScript support
+  </Card>
+  <Card title="React Native Tools" icon="mobile">
+    Debugging and IntelliSense for React Native
+  </Card>
+</CardGroup>
+
+### TypeScript Configuration
+
+The project uses strict TypeScript settings:
+
+```json
+{
+  "compilerOptions": {
+    "strict": true,
+    "esModuleInterop": true,
+    "paths": {
+      "@/*": ["./client/*"],
+      "@shared/*": ["./shared/*"]
+    }
+  }
+}
+```
+
+Path aliases are configured for cleaner imports:
+- `@/*` → maps to `./client/*`
+- `@shared/*` → maps to `./shared/*`
+
+## Code Quality Tools
+
+### Linting
+
+The project uses ESLint with Expo's configuration and Prettier integration:
+
+```bash
+# Check for linting issues
+npm run lint
+
+# Automatically fix linting issues
+npm run lint:fix
+```
+
+### Type Checking
+
+Run TypeScript type checking without emitting files:
+
+```bash
+npm run check:types
+```
+
+### Code Formatting
+
+<CodeGroup>
+```bash Check formatting
+npm run check:format
+```
+
+```bash Auto-format code
+npm run format
+```
+</CodeGroup>
+
+The Prettier configuration formats:
+- JavaScript (`.js`)
+- TypeScript (`.ts`, `.tsx`)
+- CSS files
+- JSON files
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="Metro bundler cache issues">
+    If you encounter strange errors with the Metro bundler, try clearing the cache:
+    
+    ```bash
+    npx expo start --clear
+    ```
+  </Accordion>
+
+  <Accordion title="Database connection errors">
+    Ensure your `DATABASE_URL` environment variable is set correctly and your PostgreSQL server is running:
+    
+    ```bash
+    # Check if PostgreSQL is running
+    pg_isready
+    
+    # Verify your DATABASE_URL
+    echo $DATABASE_URL
+    ```
+  </Accordion>
+
+  <Accordion title="Native module errors">
+    Some dependencies require native modules. If you see errors related to native modules, try:
+    
+    ```bash
+    # Clear node modules and reinstall
+    rm -rf node_modules
+    npm install
+    
+    # For iOS (if on macOS)
+    cd ios && pod install && cd ..
+    ```
+  </Accordion>
+
+  <Accordion title="TypeScript path alias not working">
+    Path aliases are configured in three places:
+    - `tsconfig.json` for TypeScript
+    - `babel.config.js` for runtime resolution
+    
+    Ensure all three are in sync if you add new aliases.
+  </Accordion>
+</AccordionGroup>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Project Structure" icon="folder-tree" href="/development/project-structure">
+    Learn about the codebase organization
+  </Card>
+  <Card title="Available Scripts" icon="terminal" href="/development/scripts">
+    Explore all npm scripts and commands
+  </Card>
+  <Card title="Testing" icon="flask" href="/development/testing">
+    Set up and run tests
+  </Card>
+  <Card title="Program Management" icon="book" href="/features/program-management">
+    Understand the Rippler program structure
+  </Card>
+</CardGroup>

@@ -1,0 +1,369 @@
+---
+title: Card Component
+description: Flexible container component with elevation-based background colors and optional title/description
+---
+
+# Card Component
+
+The `Card` component is a versatile container with an elevation system that automatically adjusts background colors based on the theme. It includes optional title and description props, animated press feedback, and flexible children support.
+
+## Import
+
+```tsx
+import { Card } from "@/components/Card";
+```
+
+## Basic Usage
+
+<CodeGroup>
+```tsx Simple Card
+import { Card } from "@/components/Card";
+import { ThemedText } from "@/components/ThemedText";
+
+function MyScreen() {
+  return (
+    <Card>
+      <ThemedText>Card content goes here</ThemedText>
+    </Card>
+  );
+}
+```
+
+```tsx Card with Title
+import { Card } from "@/components/Card";
+
+function MyScreen() {
+  return (
+    <Card 
+      title="Workout Summary"
+      description="Your progress this week"
+    >
+      {/* Card content */}
+    </Card>
+  );
+}
+```
+
+```tsx Pressable Card
+import { Card } from "@/components/Card";
+import { useNavigation } from "@react-navigation/native";
+
+function MyScreen() {
+  const navigation = useNavigation();
+  
+  return (
+    <Card 
+      title="Monday Workout"
+      onPress={() => navigation.navigate("Workout")}
+    >
+      <ThemedText>Bench, Squat, Deadlift</ThemedText>
+    </Card>
+  );
+}
+```
+
+```tsx Elevated Card
+import { Card } from "@/components/Card";
+
+function MyScreen() {
+  return (
+    <Card elevation={3}>
+      <ThemedText>This card appears raised</ThemedText>
+    </Card>
+  );
+}
+```
+</CodeGroup>
+
+## Props
+
+<ParamField path="elevation" type="number" default="1">
+  Elevation level that determines the background color:
+  - `0`: `theme.backgroundRoot`
+  - `1`: `theme.backgroundDefault`
+  - `2`: `theme.backgroundSecondary`
+  - `3`: `theme.backgroundTertiary`
+</ParamField>
+
+<ParamField path="title" type="string" optional>
+  Optional title displayed at the top of the card using ThemedText with `h4` typography
+</ParamField>
+
+<ParamField path="description" type="string" optional>
+  Optional description displayed below the title with reduced opacity (0.7) and `small` typography
+</ParamField>
+
+<ParamField path="children" type="React.ReactNode" optional>
+  Content to render inside the card
+</ParamField>
+
+<ParamField path="onPress" type="() => void" optional>
+  Callback function invoked when the card is pressed. When provided, the card becomes interactive with press animations
+</ParamField>
+
+<ParamField path="style" type="ViewStyle" optional>
+  Additional styles to apply to the card container
+</ParamField>
+
+## Real-World Examples
+
+### Goals Screen Input Groups
+
+From `GoalsScreen.tsx:156-161`:
+
+```tsx
+<Card style={styles.section}>
+  <ThemedText style={styles.sectionTitle}>
+    T1 - Main Lifts (1RM Goals)
+  </ThemedText>
+  {mainLifts.map((exercise) => renderExerciseInput(exercise))}
+</Card>
+```
+
+This demonstrates using Card as a grouping container for related inputs, with custom styling applied.
+
+## Elevation System
+
+The Card component uses a semantic elevation system for visual hierarchy:
+
+<Tabs>
+  <Tab title="Elevation 0">
+    **Background**: `theme.backgroundRoot`
+    
+    Used for the lowest level, typically matching the root background.
+    
+    ```tsx
+    <Card elevation={0}>
+      Root level content
+    </Card>
+    ```
+  </Tab>
+  
+  <Tab title="Elevation 1 (Default)">
+    **Background**: `theme.backgroundDefault`
+    
+    The default elevation for most cards.
+    
+    ```tsx
+    <Card elevation={1}>
+      Standard card content
+    </Card>
+    ```
+  </Tab>
+  
+  <Tab title="Elevation 2">
+    **Background**: `theme.backgroundSecondary`
+    
+    Used for cards that need to appear above default cards.
+    
+    ```tsx
+    <Card elevation={2}>
+      Raised content
+    </Card>
+    ```
+  </Tab>
+  
+  <Tab title="Elevation 3">
+    **Background**: `theme.backgroundTertiary`
+    
+    Highest elevation for important or floating elements.
+    
+    ```tsx
+    <Card elevation={3}>
+      Highly elevated content
+    </Card>
+    ```
+  </Tab>
+</Tabs>
+
+## Animation Behavior
+
+When `onPress` is provided, the Card becomes animated:
+
+### Press Animation
+
+```tsx
+const handlePressIn = () => {
+  scale.value = withSpring(0.98, springConfig);
+};
+
+const handlePressOut = () => {
+  scale.value = withSpring(1, springConfig);
+};
+```
+
+- **Press In**: Scales down to 0.98
+- **Press Out**: Springs back to 1.0
+- **Spring Config**: Same configuration as Button for consistency
+
+## Styling
+
+### Default Styles
+
+```tsx
+const styles = StyleSheet.create({
+  card: {
+    padding: Spacing.xl,
+    borderRadius: BorderRadius["2xl"],
+  },
+  cardTitle: {
+    marginBottom: Spacing.sm,
+  },
+  cardDescription: {
+    opacity: 0.7,
+  },
+});
+```
+
+### Custom Styling Example
+
+```tsx
+<Card 
+  style={{
+    marginBottom: 16,
+    paddingVertical: 20,
+  }}
+  title="Custom Card"
+>
+  <ThemedText>Content</ThemedText>
+</Card>
+```
+
+## Layout Patterns
+
+### Vertical Stack
+
+```tsx
+function MyScreen() {
+  return (
+    <ScrollView>
+      <Card title="First Section" style={{ marginBottom: 16 }}>
+        <ThemedText>Content 1</ThemedText>
+      </Card>
+      <Card title="Second Section" style={{ marginBottom: 16 }}>
+        <ThemedText>Content 2</ThemedText>
+      </Card>
+      <Card title="Third Section">
+        <ThemedText>Content 3</ThemedText>
+      </Card>
+    </ScrollView>
+  );
+}
+```
+
+### Horizontal Grid
+
+```tsx
+function MyScreen() {
+  return (
+    <View style={{ flexDirection: 'row', gap: 12 }}>
+      <Card style={{ flex: 1 }} title="Card 1">
+        <ThemedText>Content</ThemedText>
+      </Card>
+      <Card style={{ flex: 1 }} title="Card 2">
+        <ThemedText>Content</ThemedText>
+      </Card>
+    </View>
+  );
+}
+```
+
+## TypeScript Interface
+
+```tsx
+interface CardProps {
+  elevation?: number;
+  title?: string;
+  description?: string;
+  children?: React.ReactNode;
+  onPress?: () => void;
+  style?: ViewStyle;
+}
+```
+
+## Background Color Helper
+
+The Card uses an internal helper function to determine background color:
+
+```tsx
+const getBackgroundColorForElevation = (
+  elevation: number,
+  theme: any,
+): string => {
+  switch (elevation) {
+    case 1:
+      return theme.backgroundDefault;
+    case 2:
+      return theme.backgroundSecondary;
+    case 3:
+      return theme.backgroundTertiary;
+    default:
+      return theme.backgroundRoot;
+  }
+};
+```
+
+## Best Practices
+
+<AccordionGroup>
+  <Accordion title="Use elevation consistently">
+    Maintain a consistent elevation hierarchy across your app:
+    
+    ```tsx
+    // Screen background: elevation 0
+    // Standard cards: elevation 1
+    // Nested cards: elevation 2
+    // Modals/overlays: elevation 3
+    ```
+  </Accordion>
+  
+  <Accordion title="Combine title and children thoughtfully">
+    Use the title prop for simple headers, but use children for complex headers:
+    
+    ```tsx
+    // Simple
+    <Card title="Settings">
+      {/* settings options */}
+    </Card>
+    
+    // Complex
+    <Card>
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+        <ThemedText type="h4">Settings</ThemedText>
+        <Icon name="settings" />
+      </View>
+      {/* settings options */}
+    </Card>
+    ```
+  </Accordion>
+  
+  <Accordion title="Use onPress for navigation">
+    Make cards interactive when they represent navigable items:
+    
+    ```tsx
+    <Card 
+      title="Workout Plan"
+      onPress={() => navigation.navigate('WorkoutDetail')}
+    >
+      <ThemedText>Tap to view details</ThemedText>
+    </Card>
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Accessibility
+
+- When `onPress` is provided, the card becomes a pressable element
+- Title uses semantic heading typography (`h4`)
+- Description has reduced opacity for visual hierarchy
+- Animated feedback provides clear interaction cues
+
+## Source Code
+
+Location: `client/components/Card.tsx`
+
+The Card component is built using:
+- `react-native-reanimated` for press animations
+- `ThemedText` for title and description
+- `useTheme` hook for elevation-based backgrounds
+- `Animated.createAnimatedComponent(Pressable)` for interactive cards
