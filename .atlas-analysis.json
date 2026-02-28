@@ -1,0 +1,140 @@
+{
+  "projectType": "frontend",
+  "projectName": "Rippler",
+  "projectDescription": "A mobile workout tracker app built with Expo/React Native for tracking powerlifting programs and progress.",
+  "theme": "almond",
+  "primaryColor": "#1E88E5",
+  "lightColor": "#00ACC1",
+  "darkColor": "#121212",
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Documentation",
+        "groups": [
+          {
+            "group": "Get Started",
+            "pages": [
+              "introduction",
+              "quickstart",
+              "installation"
+            ]
+          },
+          {
+            "group": "Core Features",
+            "pages": [
+              "features/workout-tracking",
+              "features/goal-setting",
+              "features/program-management",
+              "features/exercise-library",
+              "features/history"
+            ]
+          },
+          {
+            "group": "Architecture",
+            "pages": [
+              "architecture/overview",
+              "architecture/data-flow",
+              "architecture/navigation",
+              "architecture/theming"
+            ]
+          },
+          {
+            "group": "Development",
+            "pages": [
+              "development/setup",
+              "development/project-structure",
+              "development/scripts",
+              "development/testing"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Components",
+        "groups": [
+          {
+            "group": "UI Components",
+            "pages": [
+              "components/overview",
+              "components/button",
+              "components/card",
+              "components/themed-components",
+              "components/exercise-card",
+              "components/set-row"
+            ]
+          },
+          {
+            "group": "Screens",
+            "pages": [
+              "screens/goals-screen",
+              "screens/program-screen",
+              "screens/workout-screen",
+              "screens/history-screen",
+              "screens/exercises-screen"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "API Reference",
+        "groups": [
+          {
+            "group": "Storage API",
+            "pages": [
+              "api/storage/overview",
+              "api/storage/exercises",
+              "api/storage/workouts",
+              "api/storage/goals",
+              "api/storage/overrides"
+            ]
+          },
+          {
+            "group": "Hooks",
+            "pages": [
+              "api/hooks/use-theme",
+              "api/hooks/use-color-scheme",
+              "api/hooks/use-screen-options"
+            ]
+          },
+          {
+            "group": "Types",
+            "pages": [
+              "api/types/workout",
+              "api/types/exercise",
+              "api/types/tier"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "keyFeatures": [
+    "Track workouts with sets, reps, and weights",
+    "Set and manage goal weights for exercises",
+    "12-week Rippler powerlifting program",
+    "Exercise library with custom notes",
+    "Workout history and progress tracking",
+    "Target override system for custom programming",
+    "Light/dark theme support",
+    "Offline-first with AsyncStorage"
+  ],
+  "publicApiSurface": [
+    "getExercises()",
+    "saveExercises(exercises)",
+    "getLoggedWorkouts()",
+    "saveLoggedWorkout(workout)",
+    "getGoalWeights()",
+    "saveGoalWeights(goalWeights)",
+    "getTargetOverrides()",
+    "saveTargetOverride(override)",
+    "useTheme()",
+    "useColorScheme()",
+    "useScreenOptions()",
+    "Button component",
+    "Card component",
+    "ThemedText component",
+    "ThemedView component",
+    "ExerciseCard component",
+    "SetRow component"
+  ]
+}
